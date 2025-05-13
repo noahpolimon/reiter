@@ -417,13 +417,13 @@ fn doubleUntil100(i: u32) ?u32 {
 }
 
 test "test recurse" {
-    var init: ?u32 = 1;
+    var init: u32 = 1;
 
-    var x = iter.recurse(u32, init.?, doubleUntil100);
+    var x = iter.recurse(u32, init, doubleUntil100);
 
-    for (init.?..init.? + 100) |_| {
+    for (init..init + 100) |_| {
         try testing.expectEqual(x.next(), init);
-        init = doubleUntil100(init orelse break);
+        init = doubleUntil100(init) orelse break;
     }
 
     try testing.expectEqual(x.next(), null);

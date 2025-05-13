@@ -2,6 +2,7 @@ const std = @import("std");
 
 const adapters = @import("adapters.zig");
 const meta_extra = @import("meta_extra.zig");
+const markers = @import("markers.zig");
 
 const Enumerate = adapters.Enumerate;
 const Map = adapters.Map;
@@ -17,10 +18,8 @@ const Cycle = adapters.Cycle;
 const Skip = adapters.Skip;
 const StepBy = adapters.StepBy;
 
-const IsPeekable = adapters.IsPeekable;
-
 pub fn Iter(comptime Impl: type) type {
-    comptime assertImplIter(Impl);
+    comptime assertIsIter(Impl);
     return struct {
         const Self = @This();
         const Item = Impl.Item;
@@ -33,7 +32,7 @@ pub fn Iter(comptime Impl: type) type {
 
         /// This method is only callable when the iterator is peekable. See `adapters.Peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (meta_extra.hasFieldOfType(Impl, IsPeekable))
+            if (meta_extra.hasFieldOfType(Impl, markers.IsPeekable))
                 return self.impl.peek();
 
             if (std.meta.hasMethod(Impl, "peek"))
@@ -88,9 +87,8 @@ pub fn Iter(comptime Impl: type) type {
 
         pub fn fold(self: *Self, comptime U: type, acc: U, f: fn (U, Item) U) U {
             var x = acc;
-            while (self.next()) |item| {
+            while (self.next()) |item|
                 x = f(x, item);
-            }
             return x;
         }
 
@@ -224,10 +222,9 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        /// Avoid passing 0 to the `n` parameter as it will still create a `Skip` instance
-        /// and effectively do the same thing as the previous Iterator. This could have mitigated by
-        /// making `n` comptime_int and returning either `Skip` or `Self` but idt it is worth it.
+        /// Passing 0 to the `n` parameter is a hard error
         pub fn skip(self: Self, n: usize) Iter(Skip(Impl)) {
+            std.debug.assert(n != 0);
             return .{
                 .impl = .{
                     .iter = self,
@@ -236,10 +233,9 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        /// Avoid passing 0 to the `n` parameter as it will still create a `StepBy` instance
-        /// and effectively do the same thing as the previous Iterator. This could have mitigated by
-        /// making `n` `comptime_int` and returning either `StepBy` or `Self` but idt it is worth it.
+        /// Passing 0 to the `n` parameter is a hard error
         pub fn stepBy(self: Self, n: usize) Iter(StepBy(Impl)) {
+            std.debug.assert(n != 0);
             return .{
                 .impl = .{
                     .iter = self,
@@ -250,7 +246,7 @@ pub fn Iter(comptime Impl: type) type {
     };
 }
 
-inline fn assertImplIter(comptime T: type) void {
+inline fn assertIsIter(comptime T: type) void {
     // check for Item
     if (!@hasDecl(T, "Item"))
         @compileError(@typeName(T) ++ " must have a public `Item` declaration");

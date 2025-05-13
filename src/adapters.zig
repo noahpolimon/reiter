@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const markers = @import("markers.zig");
+
 const Iter = @import("iter.zig").Iter;
 
 pub fn Enumerate(comptime Impl: type) type {
@@ -140,15 +142,15 @@ pub fn TakeWhile(comptime Impl: type) type {
     };
 }
 
-pub fn Chain(comptime Impl: type, comptime Chained: type) type {
-    std.debug.assert(Impl.Item == Chained.Item);
+pub fn Chain(comptime Impl: type, comptime Other: type) type {
+    std.debug.assert(Impl.Item == Other.Item);
 
     return struct {
         const Self = @This();
         pub const Item = Impl.Item;
 
         iter: Iter(Impl),
-        other: Iter(Chained),
+        other: Iter(Other),
 
         pub fn next(self: *Self) ?Item {
             return self.iter.next() orelse self.other.next();
@@ -172,8 +174,6 @@ pub fn Zip(comptime Impl: type, comptime Other: type) type {
     };
 }
 
-pub const IsPeekable = struct {};
-
 pub fn Peekable(comptime Impl: type) type {
     return struct {
         const Self = @This();
@@ -181,7 +181,7 @@ pub fn Peekable(comptime Impl: type) type {
 
         iter: Iter(Impl),
         peeked: ?Item = null,
-        _: IsPeekable = .{},
+        comptime _: markers.IsPeekable = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.peeked) |_| {
@@ -232,9 +232,8 @@ pub fn Skip(comptime Impl: type) type {
         pub fn next(self: *Self) ?Item {
             if (self.n > 0) {
                 return self.iter.nth(self.n);
-            } else {
-                return self.iter.next();
             }
+            return self.iter.next();
         }
     };
 }
@@ -248,11 +247,11 @@ pub fn StepBy(comptime Impl: type) type {
         n: usize,
 
         pub fn next(self: *Self) ?Item {
-            const v = self.iter.next();
+            const ret = self.iter.next();
             if (self.n > 0) {
                 _ = self.iter.nth(self.n - 1);
             }
-            return v;
+            return ret;
         }
     };
 }

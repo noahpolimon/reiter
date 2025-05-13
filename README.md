@@ -9,7 +9,7 @@ This library takes inspiration and several ideas from the [zig-iter](https://git
 ## Methods
 
 `.next()` 
-- This is the main method that pretty much every variations/wrapper of `Iter` uses in this library. It yields the next element from the iterator.
+- This is the main method that pretty much every variation/wrapper of `Iter` uses in this library. It yields the next element from the iterator.
 
 `.nth(n)`
 - Advances the iterator by `n`, then returns the next element. Returns `null` if the iterator is consumed before `n` is reached.
@@ -299,7 +299,7 @@ zig fetch --save https://github.com/noahpolimon/reiter/archive/refs/heads/main.t
 
 > Note that reiter is currently not stable. For now, you will need to fetch the main source.
 
-Then, add it in your `build.zig` file as a module.
+Then, add it in your `build.zig` file to the root module of you executable or library.
 
 ```diff
 // code
@@ -326,6 +326,13 @@ zig build
 ```
 
 Voila! You may now import and use the reiter library. 
+
+## Project Particulars
+
+* Not using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
+* Avoid using `anytype` wherever possible unless: 
+  1. The type would be long to type or not easy to find out, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
+  2. The type could really be of any type, e.g, tuple fields.
 
 ## License
 
