@@ -11,7 +11,7 @@ const MyIterator = struct {
     curr: usize = 0,
     buffer: []const u8 = "wxyz",
 
-    pub fn next(self: Self) ?u8 {
+    pub fn next(self: *Self) ?u8 {
         if (self.curr >= self.buffer.len)
             return null;
 

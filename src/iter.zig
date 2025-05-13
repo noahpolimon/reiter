@@ -1,5 +1,7 @@
 const std = @import("std");
+
 const adapters = @import("adapters.zig");
+const meta_extra = @import("meta_extra.zig");
 
 const Enumerate = adapters.Enumerate;
 const Map = adapters.Map;
@@ -15,7 +17,10 @@ const Cycle = adapters.Cycle;
 const Skip = adapters.Skip;
 const StepBy = adapters.StepBy;
 
+const IsPeekable = adapters.IsPeekable;
+
 pub fn Iter(comptime Impl: type) type {
+    comptime assertImplIter(Impl);
     return struct {
         const Self = @This();
         const Item = Impl.Item;
@@ -23,30 +28,23 @@ pub fn Iter(comptime Impl: type) type {
         impl: Impl,
 
         pub fn next(self: *Self) ?Item {
-            if (!std.meta.hasMethod(Impl, "next"))
-                @compileError(@typeName(Impl) ++ " must have a public `next` method");
-
-            if (@TypeOf(Impl.next) != fn (*Impl) ?Item)
-                @compileError(
-                    "`next` method does not conform to the required signature: fn (*" ++ @typeName(Impl) ++ ") ?" ++ @typeName(Item),
-                );
-
             return self.impl.next();
         }
 
-        // any other way to do this???
         /// This method is only callable when the iterator is peekable. See `adapters.Peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (std.meta.hasMethod(Impl, "peek"))
+            if (meta_extra.hasFieldOfType(Impl, IsPeekable))
                 return self.impl.peek();
 
-            @compileError(@typeName(Impl) ++ " is not peekable");
+            if (std.meta.hasMethod(Impl, "peek"))
+                @compileError("`peek` method is not overridable")
+            else
+                @compileError(@typeName(Impl) ++ " is not peekable");
         }
 
         fn advanceBy(self: *Self, n: usize) ?void {
-            for (0..n) |_| {
+            for (0..n) |_|
                 _ = self.next() orelse return null;
-            }
         }
 
         pub fn nth(self: *Self, n: usize) ?Item {
@@ -117,6 +115,20 @@ pub fn Iter(comptime Impl: type) type {
                 if (predicate(item)) return item;
             }
             return null;
+        }
+
+        // experimental
+        fn collectArrayList(self: *Self, allocator: std.mem.Allocator) !std.ArrayList(Item) {
+            var list = std.ArrayList(Item).init(allocator);
+            while (self.next()) |item| {
+                try list.append(item);
+            }
+            return list;
+        }
+
+        // experimental
+        fn collectSlice(self: *Self, allocator: std.mem.Allocator) ![]Item {
+            return (try self.collectArrayList(allocator)).toOwnedSlice();
         }
 
         pub fn enumerate(self: Self) Iter(Enumerate(Impl)) {
@@ -236,4 +248,22 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
     };
+}
+
+inline fn assertImplIter(comptime T: type) void {
+    // check for Item
+    if (!@hasDecl(T, "Item"))
+        @compileError(@typeName(T) ++ " must have a public `Item` declaration");
+
+    if (@TypeOf(T.Item) != type)
+        @compileError(@typeName(T) ++ " must be of type `type`");
+
+    // check for next()
+    if (!std.meta.hasMethod(T, "next"))
+        @compileError(@typeName(T) ++ " must have a public `next` method");
+
+    if (@TypeOf(T.next) != fn (*T) ?T.Item)
+        @compileError(
+            "`next` method does not conform to the required signature: fn (*" ++ @typeName(T) ++ ") ?" ++ @typeName(T.Item),
+        );
 }

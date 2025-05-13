@@ -172,6 +172,7 @@ pub fn Zip(comptime Impl: type, comptime Other: type) type {
     };
 }
 
+pub const IsPeekable = struct {};
 
 pub fn Peekable(comptime Impl: type) type {
     return struct {
@@ -180,6 +181,7 @@ pub fn Peekable(comptime Impl: type) type {
 
         iter: Iter(Impl),
         peeked: ?Item = null,
+        _: IsPeekable = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.peeked) |_| {
