@@ -27,6 +27,7 @@ const MyIterator = struct {
     }
 };
 
+// TODO: complete test
 test "test nth" {
     const my_iterator = MyIterator{};
 
@@ -34,8 +35,8 @@ test "test nth" {
 
     const nth = x.nth(3);
 
-    try testing.expectEqual(nth, 'z');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('z', nth);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test min" {
@@ -45,8 +46,8 @@ test "test min" {
 
     const min = x.min();
 
-    try testing.expectEqual(min, 'w');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('w', min);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test max" {
@@ -56,8 +57,8 @@ test "test max" {
 
     const max = x.max();
 
-    try testing.expectEqual(max, 'z');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('z', max);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test count" {
@@ -67,8 +68,8 @@ test "test count" {
 
     const count = x.count();
 
-    try testing.expectEqual(count, 4);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(4, count);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test reduce" {
@@ -82,8 +83,8 @@ test "test reduce" {
         }
     }.call);
 
-    try testing.expectEqual(reduced, 41);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(41, reduced);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test last" {
@@ -93,8 +94,8 @@ test "test last" {
 
     const last = x.last();
 
-    try testing.expectEqual(last, 'z');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('z', last);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test fold" {
@@ -108,8 +109,8 @@ test "test fold" {
         }
     }.call);
 
-    try testing.expectEqual(folded, 482);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(482, folded);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test for each" {
@@ -123,7 +124,7 @@ test "test for each" {
         }
     }.call);
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test find" {
@@ -137,10 +138,10 @@ test "test find" {
         }
     }.call);
 
-    try testing.expectEqual(found, 'x');
-    try testing.expectEqual(x.next(), 'y');
-    try testing.expectEqual(x.next(), 'z');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('x', found);
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual('z', x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 //
@@ -152,10 +153,10 @@ test "test enumerate" {
     var x = my_iterator.iter().enumerate();
 
     for (0..my_iterator.buffer.len) |i| {
-        try testing.expectEqual(x.next(), .{ i, my_iterator.buffer[i] });
+        try testing.expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
     }
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test filter" {
@@ -167,8 +168,8 @@ test "test filter" {
         }
     }.call);
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test filter map" {
@@ -181,10 +182,10 @@ test "test filter map" {
         }
     }.call);
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), null);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual(null, x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test map" {
@@ -196,11 +197,11 @@ test "test map" {
         }
     }.call);
 
-    try testing.expectEqual(x.next(), true);
-    try testing.expectEqual(x.next(), false);
-    try testing.expectEqual(x.next(), false);
-    try testing.expectEqual(x.next(), false);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(true, x.next());
+    try testing.expectEqual(false, x.next());
+    try testing.expectEqual(false, x.next());
+    try testing.expectEqual(false, x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test map while" {
@@ -214,11 +215,11 @@ test "test map while" {
         }
     }.call);
 
-    try testing.expectEqual(x.next(), true);
-    try testing.expectEqual(x.next(), null);
-    try testing.expectEqual(x.next(), null);
-    try testing.expectEqual(x.next(), false); // this is not a problem
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(true, x.next());
+    try testing.expectEqual(null, x.next());
+    try testing.expectEqual(null, x.next());
+    try testing.expectEqual(false, x.next()); // this is not a problem
+    try testing.expectEqual(null, x.next());
 }
 
 test "test take" {
@@ -226,9 +227,9 @@ test "test take" {
 
     var x = my_iterator.iter().take(2);
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test take while" {
@@ -240,10 +241,10 @@ test "test take while" {
         }
     }.call);
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), 'y');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test chain" {
@@ -251,17 +252,17 @@ test "test chain" {
 
     var x = my_iterator.iter().chain(my_iterator.iter());
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), 'y');
-    try testing.expectEqual(x.next(), 'z');
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual('z', x.next());
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), 'y');
-    try testing.expectEqual(x.next(), 'z');
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual('z', x.next());
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test zip" {
@@ -269,12 +270,12 @@ test "test zip" {
 
     var x = my_iterator.iter().zip(my_iterator.iter());
 
-    try testing.expectEqual(x.next(), .{ 'w', 'w' });
-    try testing.expectEqual(x.next(), .{ 'x', 'x' });
-    try testing.expectEqual(x.next(), .{ 'y', 'y' });
-    try testing.expectEqual(x.next(), .{ 'z', 'z' });
+    try testing.expectEqual(.{ 'w', 'w' }, x.next());
+    try testing.expectEqual(.{ 'x', 'x' }, x.next());
+    try testing.expectEqual(.{ 'y', 'y' }, x.next());
+    try testing.expectEqual(.{ 'z', 'z' }, x.next());
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test peekable" {
@@ -282,21 +283,22 @@ test "test peekable" {
 
     var x = my_iterator.iter().peekable();
 
-    try testing.expectEqual(x.peek(), 'w');
-    try testing.expectEqual(x.peek(), 'w');
-    try testing.expectEqual(x.peek(), 'w');
-    try testing.expectEqual(x.next(), 'w');
+    try testing.expectEqual('w', x.peek());
+    try testing.expectEqual('w', x.peek());
+    try testing.expectEqual('w', x.peek());
+    try testing.expectEqual('w', x.next());
 
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), 'y');
+    try testing.expectEqual('x', x.next());
 
-    try testing.expectEqual(x.peek(), 'z');
-    try testing.expectEqual(x.peek(), 'z');
-    try testing.expectEqual(x.peek(), 'z');
-    try testing.expectEqual(x.next(), 'z');
+    try testing.expectEqual('y', x.next());
 
-    try testing.expectEqual(x.peek(), null);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('z', x.peek());
+    try testing.expectEqual('z', x.peek());
+    try testing.expectEqual('z', x.peek());
+    try testing.expectEqual('z', x.next());
+
+    try testing.expectEqual(null, x.peek());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test cycle" {
@@ -305,7 +307,10 @@ test "test cycle" {
     var x = my_iterator.iter().cycle();
 
     for (0..1_000_000) |i| {
-        try testing.expectEqual(x.next(), my_iterator.buffer[i % my_iterator.buffer.len]);
+        try testing.expectEqual(
+            my_iterator.buffer[i % my_iterator.buffer.len],
+            x.next(),
+        );
     }
 }
 
@@ -314,19 +319,19 @@ test "test skip" {
 
     var x = my_iterator.iter().skip(1);
 
-    try testing.expectEqual(x.next(), 'x');
-    try testing.expectEqual(x.next(), 'z');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual('z', x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test step by" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().stepBy(1);
+    var x = my_iterator.iter().stepBy(2);
 
-    try testing.expectEqual(x.next(), 'w');
-    try testing.expectEqual(x.next(), 'y');
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual('w', x.next());
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 //
@@ -339,28 +344,28 @@ fn returnOne() u32 {
 test "test empty" {
     var x = iter.empty(u32);
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test once" {
     var x = iter.once(u32, 1);
 
-    try testing.expectEqual(x.next(), 1);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(1, x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test lazy once" {
     var x = iter.lazyOnce(u32, returnOne);
 
-    try testing.expectEqual(x.next(), 1);
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(1, x.next());
+    try testing.expectEqual(null, x.next());
 }
 
 test "test repeat" {
     var x = iter.repeat(u32, 1);
 
     for (0..1_000_000) |_| {
-        try testing.expectEqual(x.next(), 1);
+        try testing.expectEqual(1, x.next());
     }
 }
 
@@ -369,17 +374,17 @@ test "test repeat n" {
     var x = iter.repeatN(u32, 1, n);
 
     for (0..n) |_| {
-        try testing.expectEqual(x.next(), 1);
+        try testing.expectEqual(1, x.next());
     }
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test lazy repeat" {
     var x = iter.lazyRepeat(u32, returnOne);
 
     for (0..1_000_000) |_| {
-        try testing.expectEqual(x.next(), 1);
+        try testing.expectEqual(1, x.next());
     }
 }
 
@@ -390,10 +395,10 @@ test "test from slice" {
 
     for (0..slice.len) |i| {
         const j: u32 = @intCast(i);
-        try testing.expectEqual(x.next(), j);
+        try testing.expectEqual(j, x.next());
     }
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 test "test from range" {
@@ -404,10 +409,10 @@ test "test from range" {
 
     for (from..to) |i| {
         const j: u32 = @intCast(i);
-        try testing.expectEqual(x.next(), j);
+        try testing.expectEqual(j, x.next());
     }
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 fn doubleUntil100(i: u32) ?u32 {
@@ -422,11 +427,11 @@ test "test recurse" {
     var x = iter.recurse(u32, init, doubleUntil100);
 
     for (init..init + 100) |_| {
-        try testing.expectEqual(x.next(), init);
+        try testing.expectEqual(init, x.next());
         init = doubleUntil100(init) orelse break;
     }
 
-    try testing.expectEqual(x.next(), null);
+    try testing.expectEqual(null, x.next());
 }
 
 // TODO: add more test cases
@@ -450,7 +455,7 @@ test "test all" {
             }
         }.call);
 
-        try testing.expectEqual(folded, 241);
+        try testing.expectEqual(241, folded);
     }
     {
         const x = my_iterator.iter()
