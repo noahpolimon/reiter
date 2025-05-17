@@ -1,9 +1,6 @@
 const std = @import("std");
 
 const adapters = @import("adapters.zig");
-const meta_extra = @import("meta_extra.zig");
-const markers = @import("markers.zig");
-
 const Enumerate = adapters.Enumerate;
 const Map = adapters.Map;
 const MapWhile = adapters.MapWhile;
@@ -15,14 +12,17 @@ const Chain = adapters.Chain;
 const Zip = adapters.Zip;
 const Peekable = adapters.Peekable;
 const Cycle = adapters.Cycle;
-const Skip = adapters.Skip;
+const SkipEvery = adapters.SkipEvery;
 const StepBy = adapters.StepBy;
+
+const meta_extra = @import("meta_extra.zig");
+const markers = @import("markers.zig");
 
 pub fn Iter(comptime Impl: type) type {
     comptime assertIsIter(Impl);
     return struct {
         const Self = @This();
-        const Item = Impl.Item;
+        pub const Item = Impl.Item;
 
         impl: Impl,
 
@@ -113,20 +113,6 @@ pub fn Iter(comptime Impl: type) type {
                 if (predicate(item)) return item;
             }
             return null;
-        }
-
-        // experimental
-        fn collectArrayList(self: *Self, allocator: std.mem.Allocator) !std.ArrayList(Item) {
-            var list = std.ArrayList(Item).init(allocator);
-            while (self.next()) |item| {
-                try list.append(item);
-            }
-            return list;
-        }
-
-        // experimental
-        fn collectSlice(self: *Self, allocator: std.mem.Allocator) ![]Item {
-            return (try self.collectArrayList(allocator)).toOwnedSlice();
         }
 
         pub fn enumerate(self: Self) Iter(Enumerate(Impl)) {
@@ -222,24 +208,22 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        /// Passing 0 to the `n` parameter is a hard error
-        pub fn skip(self: Self, n: usize) Iter(Skip(Impl)) {
-            std.debug.assert(n != 0);
+        pub fn skipEvery(self: Self, interval: usize) Iter(SkipEvery(Impl)) {
             return .{
                 .impl = .{
                     .iter = self,
-                    .n = n,
+                    .interval = interval,
                 },
             };
         }
 
-        /// Passing 0 to the `n` parameter is a hard error
+        /// panics when passing 0 to the `n` parameter
         pub fn stepBy(self: Self, n: usize) Iter(StepBy(Impl)) {
             std.debug.assert(n != 0);
             return .{
                 .impl = .{
                     .iter = self,
-                    .n = n,
+                    .step_minus_one = n - 1,
                 },
             };
         }

@@ -1,8 +1,9 @@
 const std = @import("std");
 
-const markers = @import("markers.zig");
+const iter = @import("iter.zig");
+const Iter = iter.Iter;
 
-const Iter = @import("iter.zig").Iter;
+const markers = @import("markers.zig");
 
 pub fn Enumerate(comptime Impl: type) type {
     return struct {
@@ -101,6 +102,7 @@ pub fn MapWhile(comptime Impl: type, comptime R: type) type {
     };
 }
 
+// TODO: remove curr field
 pub fn Take(comptime Impl: type) type {
     return struct {
         const Self = @This();
@@ -192,7 +194,6 @@ pub fn Peekable(comptime Impl: type) type {
 
             return self.iter.next();
         }
-
         pub fn peek(self: *Self) ?Item {
             if (self.peeked) |opt_item| {
                 return opt_item;
@@ -221,19 +222,16 @@ pub fn Cycle(comptime Impl: type) type {
     };
 }
 
-pub fn Skip(comptime Impl: type) type {
+pub fn SkipEvery(comptime Impl: type) type {
     return struct {
         const Self = @This();
         pub const Item = Impl.Item;
 
         iter: Iter(Impl),
-        n: usize,
+        interval: usize,
 
         pub fn next(self: *Self) ?Item {
-            if (self.n > 0) {
-                return self.iter.nth(self.n);
-            }
-            return self.iter.next();
+            return self.iter.nth(self.interval);
         }
     };
 }
@@ -244,13 +242,12 @@ pub fn StepBy(comptime Impl: type) type {
         pub const Item = Impl.Item;
 
         iter: Iter(Impl),
-        n: usize,
+        step_minus_one: usize,
 
         pub fn next(self: *Self) ?Item {
             const ret = self.iter.next();
-            if (self.n > 0) {
-                _ = self.iter.nth(self.n - 1);
-            }
+            if (self.step_minus_one >= 1)
+                _ = self.iter.nth(self.step_minus_one - 1);
             return ret;
         }
     };

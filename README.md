@@ -1,12 +1,55 @@
 # reiter
 
-`reiter` enables Ziglings to effortlessly create their own iterators for any type of their choice, it being native Zig types, std library types or your own structs.
+`reiter` enables Ziglings to effortlessly create their own iterators for their favourite types. Iterators can be made for native Zig types, std/external library types or any other types.
 
-This library takes inspiration and several ideas from the [zig-iter](https://github.com/softprops/zig-iter) library and Rust's [std::iter::Iterator](https://doc.rust-lang.org/std/iter/trait.Iterator.html) trait.
+This library takes inspiration and several ideas from the [zig-iter](https://github.com/softprops/zig-iter) library and Rust's [std::iter::Iterator](https://doc.rust-lang.org/std/iter/trait.Iterator.html) trait but does not promise to be 100% API compatible with any of them.
 
-> This is still a WIP. I do not currently completely understand neither Zig nor Rust.
-  
-## Methods
+## Installing reiter
+
+First, fetch the source using this command inside your Zig project:
+
+```bash
+zig fetch --save https://github.com/noahpolimon/reiter/archive/refs/heads/main.tar.gz
+```
+> Recommended for now
+
+or:
+
+```bash
+zig fetch --save https://github.com/noahpolimon/reiter/archive/refs/tags/v0.1.0.tar.gz
+```
+
+> Please note that reiter is currently not stable. You can replace the "v0.1.0" with any version you want.
+
+Then, add it in your `build.zig` file to the root module of your executable or library:
+
+```diff
+// code
++ const reiter = b.dependency("reiter", .{
++     .target = target,
++     .optimize = optimize,
++ }).module("reiter");
+
+const exe = b.addExecutable(.{
+    .name = "my_project",
+    .root_module = exe_mod,
+});
+
++ exe.root_module.addImport("reiter", reiter);
+
+b.installArtifact(exe);
+// code
+```
+
+The last step is to run:
+
+```bash
+zig build
+```
+
+Voila! You may now import and use the reiter library. 
+
+## Methods on Iter
 
 `.next()` 
 - This is the main method that pretty much every variation/wrapper of `Iter` uses in this library. It yields the next element from the iterator.
@@ -71,20 +114,20 @@ This library takes inspiration and several ideas from the [zig-iter](https://git
 `.cycle()`
 - Makes an iterator loop back to the start instead of yielding `null` when it is consumed
 
-`.skip(n)`
+`.skipEvery(n)`
 - Makes the iterator skip `n` elements every time it yields an element.
 
 `.stepBy(n)`
-- Simillar to `.skip()`. However the first element of the iterator is yielded, then `n` elements are skipped.
+- Simillar to `.skipEvery()`. However the first element of the iterator is yielded, then `n` elements are skipped.
 
-...probably more to come
+> ...more to come
 
 ## "Implementing" Iter
 
 `Iter` is a generic iterator that yields values from some kind of collection, range, indexable, etc... lazily. Iterators should have the following when "implementing" `Iter`:
 
 - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields. 
-- `fn next(*@This()) ?Item` - The `next` method __*should*__ be public, take a _non-const_ pointer to `@This()` and return an _optional_ `Item`.
+- `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature. 
 
 An example implementation would be:
 
@@ -116,9 +159,7 @@ const MyIterator = struct {
     // method or any other way. However, any equivalent method/function to the 
     // one below should return `Iter(@This())`.
     pub fn iter(self: Self) Iter(Self) {
-        return .{
-            .impl = self,
-        };
+        return .{ .impl = self };
     }
 };
 ```
@@ -289,49 +330,11 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-## Using reiter
-
-First, fetch the source using this command inside your Zig project:
-
-```bash
-zig fetch --save https://github.com/noahpolimon/reiter/archive/refs/heads/main.tar.gz
-```
-
-> Note that reiter is currently not stable. For now, you will need to fetch the main source.
-
-Then, add it in your `build.zig` file to the root module of you executable or library.
-
-```diff
-// code
-+ const reiter = b.dependency("reiter", .{
-+     .target = target,
-+     .optimize = optimize,
-+ }).module("reiter");
-
-const exe = b.addExecutable(.{
-    .name = "my_project",
-    .root_module = exe_mod,
-});
-
-+ exe.root_module.addImport("reiter", reiter);
-
-b.installArtifact(exe);
-// code
-```
-
-The last step is to run:
-
-```bash
-zig build
-```
-
-Voila! You may now import and use the reiter library. 
-
 ## Project Particulars
 
 * Not using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
 * Avoid using `anytype` wherever possible unless: 
-  1. The type would be long to type or not easy to find out, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
+  1. The type would be long to type or not easy to find out if used as function parameter, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
   2. The type could really be of any type, e.g, tuple fields.
 
 ## License

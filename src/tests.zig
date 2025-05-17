@@ -314,10 +314,10 @@ test "test cycle" {
     }
 }
 
-test "test skip" {
+test "test skip every" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().skip(1);
+    var x = my_iterator.iter().skipEvery(1);
 
     try testing.expectEqual('x', x.next());
     try testing.expectEqual('z', x.next());
@@ -440,7 +440,7 @@ test "test all" {
 
     {
         var x = my_iterator.iter()
-            .stepBy(1)
+            .stepBy(2)
             .enumerate()
             .map(u32, struct {
             fn call(i: struct { usize, u8 }) u32 {
@@ -459,7 +459,7 @@ test "test all" {
     }
     {
         const x = my_iterator.iter()
-            .skip(1)
+            .skipEvery(1)
             .zip(my_iterator.iter())
             .map(u32, struct {
             fn call(i: struct { u8, u8 }) u32 {

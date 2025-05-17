@@ -89,12 +89,12 @@ fn RepeatN(comptime T: type) type {
         pub const Item = T;
 
         item: T,
-        index: usize = 0,
+        curr: usize = 0,
         n: usize,
 
         pub fn next(self: *Self) ?Item {
-            if (self.index >= self.n) return null;
-            self.index += 1;
+            if (self.curr >= self.n) return null;
+            self.curr += 1;
             return self.item;
         }
     };
