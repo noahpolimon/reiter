@@ -314,6 +314,31 @@ test "test cycle" {
     }
 }
 
+test "test skip" {
+    const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter().skip(1);
+
+    try testing.expectEqual('x', x.next());
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual('z', x.next());
+    try testing.expectEqual(null, x.next());
+}
+
+test "skip while" {
+       const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter().skipWhile(struct {
+        fn call(i: u8) bool {
+            return i < 'y';
+        }
+    }.call);
+
+    try testing.expectEqual('y', x.next());
+    try testing.expectEqual('z', x.next());
+    try testing.expectEqual(null, x.next()); 
+}
+
 test "test skip every" {
     const my_iterator = MyIterator{};
 

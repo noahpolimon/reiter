@@ -12,6 +12,8 @@ const Chain = adapters.Chain;
 const Zip = adapters.Zip;
 const Peekable = adapters.Peekable;
 const Cycle = adapters.Cycle;
+const Skip = adapters.Skip;
+const SkipWhile = adapters.SkipWhile;
 const SkipEvery = adapters.SkipEvery;
 const StepBy = adapters.StepBy;
 
@@ -204,6 +206,24 @@ pub fn Iter(comptime Impl: type) type {
                     .iter = .{
                         .impl = self.impl,
                     },
+                },
+            };
+        }
+
+        pub fn skip(self: Self, n: usize) Iter(Skip(Impl)) {
+            return .{
+                .impl = .{
+                    .iter = self,
+                    .n = n,
+                },
+            };
+        }
+
+        pub fn skipWhile(self: Self, predicate: fn (Item) bool) Iter(SkipWhile(Impl)) {
+            return .{
+                .impl = .{
+                    .iter = self,
+                    .predicate = predicate,
                 },
             };
         }

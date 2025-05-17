@@ -194,6 +194,7 @@ pub fn Peekable(comptime Impl: type) type {
 
             return self.iter.next();
         }
+
         pub fn peek(self: *Self) ?Item {
             if (self.peeked) |opt_item| {
                 return opt_item;
@@ -218,6 +219,45 @@ pub fn Cycle(comptime Impl: type) type {
                 self.orig = self.iter;
                 return self.orig.next();
             };
+        }
+    };
+}
+
+pub fn Skip(comptime Impl: type) type {
+    return struct {
+        const Self = @This();
+        pub const Item = Impl.Item;
+
+        iter: Iter(Impl),
+        n: usize,
+
+        pub fn next(self: *Self) ?Item {
+            if (self.n > 0) {
+                const ret = self.iter.nth(self.n);
+                self.n = 0;
+                return ret;
+            }
+            return self.iter.next();
+        }
+    };
+}
+
+pub fn SkipWhile(comptime Impl: type) type {
+    return struct {
+        const Self = @This();
+        pub const Item = Impl.Item;
+
+        iter: Iter(Impl),
+        flag: bool = false,
+        predicate: *const fn (Item) bool,
+
+        pub fn next(self: *Self) ?Item {
+            if (self.flag) return null;
+            while (self.iter.next()) |item| {
+                if (!self.predicate(item)) return item;
+            }
+            self.flag = true;
+            return null;
         }
     };
 }
