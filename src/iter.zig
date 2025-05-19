@@ -32,6 +32,14 @@ pub fn Iter(comptime Impl: type) type {
             return self.impl.next();
         }
 
+        // experimental
+        fn sizeHint(self: Self) struct { usize, ?usize } {
+            if (std.meta.hasMethod(Impl, "sizeHint"))
+                return self.impl.sizeHint();
+
+            return .{ 0, null };
+        }
+
         /// This method is only callable when the iterator is peekable. See `adapters.Peekable`.
         pub fn peek(self: *Self) ?Item {
             if (meta_extra.hasFieldOfType(Impl, markers.IsPeekable))
@@ -115,6 +123,25 @@ pub fn Iter(comptime Impl: type) type {
                 if (predicate(item)) return item;
             }
             return null;
+        }
+
+        // experimental
+        fn collect(self: *Self, allocator: std.mem.Allocator) ![]Item {
+            const size_hint = self.sizeHint();
+            const cap =
+                if (size_hint.@"1") |upper|
+                    upper
+                else if (size_hint.@"0" < std.math.maxInt(usize))
+                    size_hint.@"0"
+                else
+                    0;
+
+            var list = try std.ArrayList(Item).initCapacity(allocator, cap);
+
+            while (self.next()) |item| {
+                try list.append(item);
+            }
+            return list.toOwnedSlice();
         }
 
         pub fn enumerate(self: Self) Iter(Enumerate(Impl)) {

@@ -11,4 +11,5 @@ pub const repeatN = initializers.repeatN;
 pub const lazyRepeat = initializers.lazyRepeat;
 pub const fromSlice = initializers.fromSlice;
 pub const fromRange = initializers.fromRange;
+pub const fromRangeStep = initializers.fromRangeStep;
 pub const recurse = initializers.recurse;

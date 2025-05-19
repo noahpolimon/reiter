@@ -22,6 +22,10 @@ pub fn Enumerate(comptime Impl: type) type {
 
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return self.iter.sizeHint();
+        }
     };
 }
 
@@ -39,6 +43,10 @@ pub fn Filter(comptime Impl: type) type {
             }
 
             return null;
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return .{ 0, self.iter.sizeHint().@"1" };
         }
     };
 }
@@ -60,6 +68,10 @@ pub fn FilterMap(comptime Impl: type, comptime R: type) type {
 
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return .{ 0, self.iter.sizeHint().@"1" };
+        }
     };
 }
 
@@ -76,6 +88,10 @@ pub fn Map(comptime Impl: type, comptime R: type) type {
                 self.f(item)
             else
                 null;
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return self.iter.sizeHint();
         }
     };
 }
@@ -99,6 +115,10 @@ pub fn MapWhile(comptime Impl: type, comptime R: type) type {
 
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return .{ 0, self.iter.sizeHint().@"1" };
+        }
     };
 }
 
@@ -121,6 +141,10 @@ pub fn Take(comptime Impl: type) type {
 
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return .{ 0, self.n - self.curr };
+        }
     };
 }
 
@@ -141,6 +165,10 @@ pub fn TakeWhile(comptime Impl: type) type {
             self.flag = true;
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return .{ 0, self.iter.sizeHint().@"1" };
+        }
     };
 }
 
@@ -157,6 +185,21 @@ pub fn Chain(comptime Impl: type, comptime Other: type) type {
         pub fn next(self: *Self) ?Item {
             return self.iter.next() orelse self.other.next();
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const hint = self.iter.sizeHint();
+            const other = self.other.sizeHint();
+
+            const lower = std.math.add(usize, hint.@"0", other.@"0") catch std.math.maxInt(usize);
+
+            const upper =
+                if (hint.@"1" == null or other.@"1" == null)
+                    null
+                else
+                    std.math.add(usize, hint.@"1", other.@"1") catch std.math.maxInt(usize);
+
+            return .{ lower, upper };
+        }
     };
 }
 
@@ -172,6 +215,10 @@ pub fn Zip(comptime Impl: type, comptime Other: type) type {
             const x = self.iter.next() orelse return null;
             const y = self.other.next() orelse return null;
             return .{ x, y };
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return self.iter.sizeHint();
         }
     };
 }
@@ -193,6 +240,10 @@ pub fn Peekable(comptime Impl: type) type {
             }
 
             return self.iter.next();
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return self.iter.sizeHint();
         }
 
         pub fn peek(self: *Self) ?Item {
@@ -220,6 +271,10 @@ pub fn Cycle(comptime Impl: type) type {
                 return self.orig.next();
             };
         }
+
+        pub fn sizeHint(_: Self) struct { usize, ?usize } {
+            return .{ std.math.maxInt(usize), null };
+        }
     };
 }
 
@@ -238,6 +293,19 @@ pub fn Skip(comptime Impl: type) type {
                 return ret;
             }
             return self.iter.next();
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const lower_, const upper_ = self.iter.sizeHint();
+
+            const lower = std.math.sub(lower_, self.n) catch 0;
+            const upper =
+                if (upper_) |x|
+                    std.math.sub(x, self.n) catch 0
+                else
+                    null;
+
+            return .{ lower, upper };
         }
     };
 }
@@ -259,6 +327,10 @@ pub fn SkipWhile(comptime Impl: type) type {
             self.flag = true;
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            return .{ 0, self.iter.sizeHint().@"1" };
+        }
     };
 }
 
@@ -272,6 +344,28 @@ pub fn SkipEvery(comptime Impl: type) type {
 
         pub fn next(self: *Self) ?Item {
             return self.iter.nth(self.interval);
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const lower_, const upper_ = self.iter.sizeHint();
+
+            const lower = std.math.divCeil(
+                usize,
+                lower_,
+                self.interval,
+            ) catch std.math.maxInt(usize);
+
+            const upper =
+                if (upper_) |x|
+                    std.math.divCeil(
+                        usize,
+                        x,
+                        self.interval,
+                    ) catch std.math.maxInt(usize)
+                else
+                    null;
+
+            return .{ lower, upper };
         }
     };
 }
@@ -289,6 +383,32 @@ pub fn StepBy(comptime Impl: type) type {
             if (self.step_minus_one >= 1)
                 _ = self.iter.nth(self.step_minus_one - 1);
             return ret;
+        }
+
+        fn originalStep(self: Self) usize {
+            return self.step_minus_one + 1;
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const lower_, const upper_ = self.iter.sizeHint();
+
+            const lower = std.math.divTrunc(
+                usize,
+                lower_,
+                self.originalStep(),
+            ) catch lower_;
+
+            const upper =
+                if (upper_) |x|
+                    std.math.divTrunc(
+                        usize,
+                        x,
+                        self.originalStep(),
+                    ) catch x
+                else
+                    null;
+
+            return .{ lower, upper };
         }
     };
 }

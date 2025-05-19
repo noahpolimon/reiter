@@ -10,6 +10,10 @@ fn Empty(comptime T: type) type {
         pub fn next(_: *Self) ?Item {
             return null;
         }
+
+        pub fn sizeHint(_: Self) struct { usize, ?usize } {
+            return .{ 0, 0 };
+        }
     };
 }
 
@@ -30,6 +34,13 @@ fn Once(comptime T: type) type {
             const item = self.item;
             self.item = null;
             return item;
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            if (self.item) |_|
+                return .{ 1, 1 };
+
+            return .{ 0, 0 };
         }
     };
 }
@@ -55,6 +66,13 @@ fn LazyOnce(comptime T: type) type {
             }
             return null;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            if (self.f) |_|
+                return .{ 1, 1 };
+
+            return .{ 0, 0 };
+        }
     };
 }
 
@@ -73,6 +91,10 @@ fn Repeat(comptime T: type) type {
 
         pub fn next(self: *Self) ?Item {
             return self.item;
+        }
+
+        pub fn sizeHint(_: Self) struct { usize, ?usize } {
+            return .{ std.math.maxInt(usize), null };
         }
     };
 }
@@ -97,6 +119,11 @@ fn RepeatN(comptime T: type) type {
             self.curr += 1;
             return self.item;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const size = self.n - self.curr;
+            return .{ size, size };
+        }
     };
 }
 
@@ -115,6 +142,10 @@ fn LazyRepeat(comptime T: type) type {
 
         pub fn next(self: *Self) ?Item {
             return self.f();
+        }
+
+        pub fn sizeHint(_: Self) struct { usize, ?usize } {
+            return .{ std.math.maxInt(usize), null };
         }
     };
 }
@@ -138,6 +169,11 @@ fn FromSlice(comptime T: type) type {
             const x = self.slice[self.curr];
             self.curr += 1;
             return x;
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const size = self.slice.len - self.curr;
+            return .{ size, size };
         }
     };
 }
@@ -165,6 +201,19 @@ fn FromRange(comptime T: type) type {
             self.start += self.step;
             return x;
         }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const size_step_one = self.end - self.start;
+
+            // TODO: test
+            const size = std.math.divTrunc(
+                usize,
+                size_step_one,
+                @abs(self.step),
+            ) catch 0;
+
+            return .{ size, size };
+        }
     };
 }
 
@@ -174,6 +223,7 @@ pub fn fromRange(comptime T: type, start: T, end: T) Iter(FromRange(T)) {
 
 pub fn fromRangeStep(comptime T: type, start: T, end: T, step: T) Iter(FromRange(T)) {
     std.debug.assert(step != 0);
+    // ensure range is finite
     std.debug.assert(end - start <= step * (end - start));
 
     return .{
@@ -200,6 +250,13 @@ fn Recurse(comptime T: type) type {
             }
 
             return null;
+        }
+
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            const lower: usize = if (self.value) |_| 1 else 0;
+            const upper: ?usize = if (self.value) |_| null else 0;
+
+            return .{ lower, upper };
         }
     };
 }

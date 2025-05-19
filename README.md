@@ -2,7 +2,7 @@
 
 `reiter` enables Ziglings to effortlessly create their own iterators for their favourite types. Iterators can be made for native Zig types, std/external library types or any other types.
 
-This library takes inspiration and several ideas from the [zig-iter](https://github.com/softprops/zig-iter) library and Rust's [std::iter::Iterator](https://doc.rust-lang.org/std/iter/trait.Iterator.html) trait but does not promise to be 100% API compatible with any of them.
+This library takes inspiration and several ideas from the [zig-iter](https://github.com/softprops/zig-iter) library and Rust's [std::iter::Iterator](https://doc.rust-lang.org/std/iter/trait.Iterator.html) trait but does not promise to be 100% the same as any of them.
 
 ## Installing reiter
 
@@ -82,10 +82,10 @@ Voila! You may now import and use the reiter library.
 - Consumes the iterator and returns the last value of the iterator. 
 
 `.enumerate()` 
-- Makes the iterator yield enumerated values in the form of `struct { usize, Item }` tuples.
+- Creates an iterator that yields enumerated values in the form of `struct { usize, I.Item }` tuples.
 
 `.filter(predicate)`
-- Makes the iterator yield only values for which the predicate is true.
+- Creates an iterator that yields only values for which the predicate is true.
 
 `.filterMap(type, func)`
 - Filters and maps values for which `func` does not return `null` 
@@ -94,28 +94,34 @@ Voila! You may now import and use the reiter library.
 - Transforms values to a specified type using `func` before yielding them. 
 
 `.mapWhile(type, func)`
-- Makes the iterator yield mapped values while `func` does not return a `null`. 
+- Creates an iterator that yields mapped values while `func` does not return a `null`. 
 
 `.take(n)`
-- Makes the iterator yield only its first `n` elements.
+- Creates an iterator that yields only its first `n` elements.
 
 `.takeWhile(predicate)`
-- Makes the iterator yield elements for which the predicate is true. 
+- Creates an iterator that yields elements for which the predicate is true. 
 
 `.chain(other)`
-- Chains another iterator that yields the same value type as the iterator. The values of the other iterator will be yielded after the original one is consumed.
+- Creates an iterator that yields the value of the original iterator and then the value of the chained one. The only constraint is that the two iterators should yield the same value type.
 
 `.zip(other)`
-- Makes an iterator yield paired values in the form of `struct { T, U }` where `T` is the type that the original iterator yields and `U` is the type that the other iterator yields. It yields `null` when 1 of the iterators is consumed.
+- Creates an iterator that yields paired values in the form of `struct { I.Item, OtherI.Item }` until 1 of the iterators is consumed. 
 
-`.peekable(other)`
-- Provides the `.peek()` method to allow getting the next value from the iterator without advancing it.
+`.peekable()`
+- Creates an iterator that provides the `.peek()` method. It allows retrieving the next value from the iterator without advancing it.
 
 `.cycle()`
-- Makes an iterator loop back to the start instead of yielding `null` when it is consumed
+- Creates an iterator that loops back to the start instead of yielding `null` when it is consumed.
 
+`.skip(n)`
+- Creates an iterator that skips `n` elements before yielding.
+  
+`.skipWhile(predicate)`
+- Creates an iterator that skips elements until the predicate is false.
+  
 `.skipEvery(n)`
-- Makes the iterator skip `n` elements every time it yields an element.
+- Creates an iterator that skips `n` elements every time it yields an element.
 
 `.stepBy(n)`
 - Simillar to `.skipEvery()`. However the first element of the iterator is yielded, then `n` elements are skipped.
@@ -139,8 +145,8 @@ const Iter = @import("reiter").Iter;
 const MyIterator = struct {
     const Self = @This();
 
-    // This is necessary so as to allow adapters such as Map and Filter to
-    // obtain the type your iterator is yielding.
+    // This is necessary so as to allow adapters such as Map, Filter, etc.. 
+    // to obtain the type your iterator is yielding.
     pub const Item = u8;
 
     index: usize = 0,
@@ -164,7 +170,7 @@ const MyIterator = struct {
 };
 ```
 
-After creating an iterator it is possible to use and chain them like any Rust iterators.
+After creating an iterator it is possible to use and chain methods like any Rust iterators.
 
 ```zig
 const my_iterator = MyIterator{};
@@ -192,7 +198,7 @@ struct {
 }.call
 ```
 
-Zig does not (and i think most likely will not) have a simpler way to make closures.
+Zig does not (and i think most likely will not) support closures.
 
 ## Examples
 
@@ -236,7 +242,7 @@ Initializers are pre-made functions that can be used to create iterators for a p
     ```
 
 `repeat(type, item)`
-- Creates an iterator that yields `item` repeatedly. This is the equivalent of using `once().cycle()`.
+- Creates an iterator that yields `item` repeatedly. This is the equivalent of using `once(type, item).cycle()`.
 
     ```zig
     var i = reiter.repeat(u32, 50);
@@ -247,7 +253,7 @@ Initializers are pre-made functions that can be used to create iterators for a p
     ```
 
 `repeatN(type, item, n)`
-- Creates an iterator that yields `item` `n` times. This is the equivalent of using `once().cycle().take(n)`.
+- Creates an iterator that yields `item` `n` times. This is the equivalent of using `once(type, item).cycle().take(n)`.
 
     ```zig
     const n: usize = 3;
