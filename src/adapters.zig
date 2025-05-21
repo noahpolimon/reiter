@@ -1,9 +1,11 @@
 const std = @import("std");
+const math = std.math;
 
 const iter = @import("iter.zig");
 const Iter = iter.Iter;
 
 const markers = @import("markers.zig");
+const math_extra = @import("math_extra.zig");
 
 pub fn Enumerate(comptime Impl: type) type {
     return struct {
@@ -122,20 +124,18 @@ pub fn MapWhile(comptime Impl: type, comptime R: type) type {
     };
 }
 
-// TODO: remove curr field
 pub fn Take(comptime Impl: type) type {
     return struct {
         const Self = @This();
         pub const Item = Impl.Item;
 
         iter: Iter(Impl),
-        curr: usize = 0,
         n: usize,
 
         pub fn next(self: *Self) ?Item {
-            if (self.curr >= self.n) return null;
+            if (self.n == 0) return null;
             if (self.iter.next()) |item| {
-                self.curr += 1;
+                self.n -= 1;
                 return item;
             }
 
@@ -143,7 +143,15 @@ pub fn Take(comptime Impl: type) type {
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            return .{ 0, self.n - self.curr };
+            if (self.n == 0) return .{ 0, 0 };
+            var lower, var upper = self.iter.sizeHint();
+
+            lower = math_extra.min(usize, lower, self.n);
+
+            if (upper) |u|
+                upper = if (u < self.n) u else self.n;
+
+            return .{ lower, upper };
         }
     };
 }
@@ -190,13 +198,13 @@ pub fn Chain(comptime Impl: type, comptime Other: type) type {
             const hint = self.iter.sizeHint();
             const other = self.other.sizeHint();
 
-            const lower = std.math.add(usize, hint.@"0", other.@"0") catch std.math.maxInt(usize);
+            const lower = math.add(usize, hint.@"0", other.@"0") catch std.math.maxInt(usize);
 
             const upper =
                 if (hint.@"1" == null or other.@"1" == null)
                     null
                 else
-                    std.math.add(usize, hint.@"1", other.@"1") catch std.math.maxInt(usize);
+                    math.add(usize, hint.@"1".?, other.@"1".?) catch math.maxInt(usize);
 
             return .{ lower, upper };
         }
@@ -218,7 +226,20 @@ pub fn Zip(comptime Impl: type, comptime Other: type) type {
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            return self.iter.sizeHint();
+            const iter_lower, const iter_upper = self.iter.sizeHint();
+            const other_lower, const other_upper = self.other.sizeHint();
+
+            const lower = math_extra.min(usize, iter_lower, other_lower);
+
+            const upper =
+                if (iter_upper != null and other_upper != null)
+                    math_extra.min(usize, iter_upper.?, other_upper.?)
+                else if (iter_upper == null)
+                    other_upper
+                else
+                    iter_upper;
+
+            return .{ lower, upper };
         }
     };
 }
@@ -272,8 +293,10 @@ pub fn Cycle(comptime Impl: type) type {
             };
         }
 
-        pub fn sizeHint(_: Self) struct { usize, ?usize } {
-            return .{ std.math.maxInt(usize), null };
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
+            var lower, _ = self.orig.sizeHint();
+            lower = if (lower == 0) lower else math.maxInt(usize);
+            return .{ lower, null };
         }
     };
 }
@@ -296,14 +319,12 @@ pub fn Skip(comptime Impl: type) type {
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            const lower_, const upper_ = self.iter.sizeHint();
+            var lower, var upper = self.iter.sizeHint();
 
-            const lower = std.math.sub(lower_, self.n) catch 0;
-            const upper =
-                if (upper_) |x|
-                    std.math.sub(x, self.n) catch 0
-                else
-                    null;
+            lower = math_extra.saturatingSub(usize, lower, self.n);
+
+            if (upper) |u|
+                upper = math_extra.saturatingSub(usize, u, self.n);
 
             return .{ lower, upper };
         }
@@ -347,23 +368,22 @@ pub fn SkipEvery(comptime Impl: type) type {
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            const lower_, const upper_ = self.iter.sizeHint();
+            var lower, var upper = self.iter.sizeHint();
 
-            const lower = std.math.divCeil(
-                usize,
-                lower_,
-                self.interval,
-            ) catch std.math.maxInt(usize);
+            if (lower != std.math.maxInt(usize)) {
+                lower = std.math.divCeil(
+                    usize,
+                    lower,
+                    self.interval,
+                ) catch unreachable;
+            }
 
-            const upper =
-                if (upper_) |x|
-                    std.math.divCeil(
-                        usize,
-                        x,
-                        self.interval,
-                    ) catch std.math.maxInt(usize)
-                else
-                    null;
+            if (upper) |u|
+                upper = std.math.divCeil(
+                    usize,
+                    u,
+                    self.interval,
+                ) catch unreachable;
 
             return .{ lower, upper };
         }
@@ -390,23 +410,20 @@ pub fn StepBy(comptime Impl: type) type {
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            const lower_, const upper_ = self.iter.sizeHint();
+            var lower, var upper = self.iter.sizeHint();
 
-            const lower = std.math.divTrunc(
+            lower = std.math.divTrunc(
                 usize,
-                lower_,
+                lower,
                 self.originalStep(),
-            ) catch lower_;
+            ) catch unreachable;
 
-            const upper =
-                if (upper_) |x|
-                    std.math.divTrunc(
-                        usize,
-                        x,
-                        self.originalStep(),
-                    ) catch x
-                else
-                    null;
+            if (upper) |x|
+                upper = std.math.divTrunc(
+                    usize,
+                    x,
+                    self.originalStep(),
+                ) catch unreachable;
 
             return .{ lower, upper };
         }

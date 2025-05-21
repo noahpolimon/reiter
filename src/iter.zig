@@ -17,7 +17,6 @@ const SkipWhile = adapters.SkipWhile;
 const SkipEvery = adapters.SkipEvery;
 const StepBy = adapters.StepBy;
 
-const meta_extra = @import("meta_extra.zig");
 const markers = @import("markers.zig");
 
 pub fn Iter(comptime Impl: type) type {
@@ -32,17 +31,18 @@ pub fn Iter(comptime Impl: type) type {
             return self.impl.next();
         }
 
-        // experimental
-        fn sizeHint(self: Self) struct { usize, ?usize } {
+        /// experimental
+        pub fn sizeHint(self: Self) struct { usize, ?usize } {
             if (std.meta.hasMethod(Impl, "sizeHint"))
                 return self.impl.sizeHint();
 
             return .{ 0, null };
         }
 
-        /// This method is only callable when the iterator is peekable. See `adapters.Peekable`.
+        /// This method is only callable when the iterator is peekable.
+        /// See `@import("adapters.zig").Peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (meta_extra.hasFieldOfType(Impl, markers.IsPeekable))
+            if (markers.isMarked(Impl, markers.IsPeekable))
                 return self.impl.peek();
 
             if (std.meta.hasMethod(Impl, "peek"))
@@ -95,6 +95,12 @@ pub fn Iter(comptime Impl: type) type {
             }
         }
 
+        pub fn fallibleForEach(self: *Self, f: fn (Item) anyerror!void) !void {
+            while (self.next()) |item| {
+                try f(item);
+            }
+        }
+
         pub fn fold(self: *Self, comptime U: type, acc: U, f: fn (U, Item) U) U {
             var x = acc;
             while (self.next()) |item|
@@ -102,10 +108,27 @@ pub fn Iter(comptime Impl: type) type {
             return x;
         }
 
+        pub fn fallibleFold(self: *Self, comptime U: type, acc: U, f: fn (U, Item) anyerror!U) !U {
+            var x = acc;
+            while (self.next()) |item| {
+                x = try f(x, item);
+            }
+            return x;
+        }
+
         pub fn reduce(self: *Self, f: fn (Item, Item) Item) ?Item {
             var acc = self.next() orelse return null;
             while (self.next()) |item| {
                 acc = f(acc, item);
+            }
+            return acc;
+        }
+
+        // experimental
+        fn fallibleReduce(self: *Self, f: fn (Item, Item) anyerror!Item) !?Item {
+            var acc = self.next() orelse return null;
+            while (self.next()) |item| {
+                acc = try f(acc, item);
             }
             return acc;
         }
@@ -136,12 +159,13 @@ pub fn Iter(comptime Impl: type) type {
                 else
                     0;
 
-            var list = try std.ArrayList(Item).initCapacity(allocator, cap);
+            var list = try std.ArrayList(Item)
+                .initCapacity(allocator, cap);
 
             while (self.next()) |item| {
                 try list.append(item);
             }
-            return list.toOwnedSlice();
+            return list.items;
         }
 
         pub fn enumerate(self: Self) Iter(Enumerate(Impl)) {

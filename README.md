@@ -2,7 +2,7 @@
 
 `reiter` enables Ziglings to effortlessly create their own iterators for their favourite types. Iterators can be made for native Zig types, std/external library types or any other types.
 
-This library takes inspiration and several ideas from the [zig-iter](https://github.com/softprops/zig-iter) library and Rust's [std::iter::Iterator](https://doc.rust-lang.org/std/iter/trait.Iterator.html) trait but does not promise to be 100% the same as any of them.
+This library takes inspiration and several ideas from the [zig-iter](https://github.com/softprops/zig-iter) library and Rust's [std::iter::Iterator](https://doc.rust-lang.org/std/iter/trait.Iterator.html) trait but does not promise to adhere 100% to any of their implementations.
 
 ## Installing reiter
 
@@ -53,6 +53,9 @@ Voila! You may now import and use the reiter library.
 
 `.next()` 
 - This is the main method that pretty much every variation/wrapper of `Iter` uses in this library. It yields the next element from the iterator.
+
+`.sizeHint()` (experimental)
+- Returns a tuple containing the lower bound and upper bound of the remaining items in the iterator. A lower bound of `std.math.maxInt(usize)` or/and an upper bound of `null` represent an unknown or infinite length.  
 
 `.nth(n)`
 - Advances the iterator by `n`, then returns the next element. Returns `null` if the iterator is consumed before `n` is reached.
@@ -134,6 +137,7 @@ Voila! You may now import and use the reiter library.
 
 - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields. 
 - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature. 
+- `fn sizeHint(@This()) struct { usize, ?usize }` - This method is not compulsory. However if it were to be defined, it __*should*__ be public andhave the same signature. The default implement returns `.{ 0, null }` which is correct for any iterators.
 
 An example implementation would be:
 
@@ -159,6 +163,11 @@ const MyIterator = struct {
         const ret = self.buffer[self.index];
         self.index += 1;
         return ret;
+    }
+
+    pub fn sizeHint(self: Self) struct { usize, ?usize } {
+        const s = self.buffer.len - self.index;
+        return .{ s, s };
     }
 
     // This is just an example. You may choose to use an `init` or `from`
@@ -324,7 +333,7 @@ Initializers are pre-made functions that can be used to create iterators for a p
     var i = reiter.recurse(u32, 0, struct {
         fn call(x: u32) ?u32 {
             if (x >= 5) return null;
-            return x;
+            return x + 1;
         }
     }.call);
     
