@@ -15,10 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Make `Iter.sizeHint` public but still experimental
-- Removed `Take.curr` field
 - Make `Peekable`, `Take`, `Cycle`, `Skip`, `SkipEvery` and `StepBy` not wrap themselves when chained.
-- Removed `RepeatN.curr` field
 - Make all `fn` parameters `*const`
+
+### Removed
+
+- `Take.curr` field is no longer needed
+- `RepeatN.curr` field is no longer needed
 
 ### Fixed
 
