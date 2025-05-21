@@ -256,7 +256,9 @@ test "Iter.mapWhile" {
 test "Iter.take" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().take(2);
+    var x = my_iterator.iter().take(2).take(5);
+
+    try testing.expectEqual(Iter(adapters.Take(MyIterator)), @TypeOf(x));
 
     try testing.expectEqual(
         .{ 2, 2 },
@@ -332,7 +334,9 @@ test "Iter.zip" {
 test "Iter.peekable" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().peekable();
+    var x = my_iterator.iter().peekable().peekable();
+
+    try testing.expectEqual(Iter(adapters.Peekable(MyIterator)), @TypeOf(x));
 
     try testing.expectEqual(
         .{ my_iterator.buffer.len, my_iterator.buffer.len },
@@ -360,7 +364,9 @@ test "Iter.peekable" {
 test "Iter.cycle" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().cycle();
+    var x = my_iterator.iter().cycle().cycle();
+
+    try testing.expectEqual(Iter(adapters.Cycle(MyIterator)), @TypeOf(x));
 
     try testing.expectEqual(
         .{ std.math.maxInt(usize), null },
@@ -378,7 +384,9 @@ test "Iter.cycle" {
 test "Iter.skip" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().skip(1);
+    var x = my_iterator.iter().skip(1).skip(0);
+
+    try testing.expectEqual(Iter(adapters.Skip(MyIterator)), @TypeOf(x));
 
     try testing.expectEqual(
         .{ my_iterator.buffer.len - 1, my_iterator.buffer.len - 1 },
@@ -394,7 +402,8 @@ test "Iter.skip" {
 test "Iter.skipWhile" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().skipWhile(struct {
+    var x = my_iterator.iter()
+        .skipWhile(struct {
         fn call(i: u8) bool {
             return i < 'y';
         }
@@ -413,7 +422,9 @@ test "Iter.skipWhile" {
 test "Iter.skipEvery" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().skipEvery(1);
+    var x = my_iterator.iter().skipEvery(1).skipEvery(0);
+
+    try testing.expectEqual(Iter(adapters.SkipEvery(MyIterator)), @TypeOf(x));
 
     try testing.expect(x.sizeHint().@"0" >= my_iterator.buffer.len / 2);
 
@@ -425,7 +436,9 @@ test "Iter.skipEvery" {
 test "Iter.stepBy" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().stepBy(2);
+    var x = my_iterator.iter().stepBy(2).stepBy(0);
+
+    try testing.expectEqual(Iter(adapters.StepBy(MyIterator)), @TypeOf(x));
 
     try testing.expectEqual('w', x.next());
     try testing.expectEqual('y', x.next());

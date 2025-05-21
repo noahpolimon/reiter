@@ -55,7 +55,7 @@ Voila! You may now import and use the reiter library.
 - This is the main method that pretty much every variation/wrapper of `Iter` uses in this library. It yields the next element from the iterator.
 
 `.sizeHint()` (experimental)
-- Returns a tuple containing the lower bound and upper bound of the remaining items in the iterator. A lower bound of `std.math.maxInt(usize)` or/and an upper bound of `null` represent an unknown or infinite length.  
+- Returns a tuple containing a lower bound and upper bound of the length of the remaining items in the iterator. A lower bound of value `std.math.maxInt(usize)` or/and an upper bound of value `null` represent an unknown or infinite length.  
 
 `.nth(n)`
 - Advances the iterator by `n`, then returns the next element. Returns `null` if the iterator is consumed before `n` is reached.
@@ -137,7 +137,7 @@ Voila! You may now import and use the reiter library.
 
 - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields. 
 - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature. 
-- `fn sizeHint(@This()) struct { usize, ?usize }` - This method is not compulsory. However if it were to be defined, it __*should*__ be public andhave the same signature. The default implement returns `.{ 0, null }` which is correct for any iterators.
+- `fn sizeHint(@This()) struct { usize, ?usize }` - This method is not compulsory. However if it were to be defined, it __*should*__ be public and have the same signature. The default implementation returns `.{ 0, null }` which is correct for any iterator.
 
 An example implementation would be:
 
@@ -350,7 +350,7 @@ Initializers are pre-made functions that can be used to create iterators for a p
 * Not using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
 * Avoid using `anytype` wherever possible unless: 
   1. The type would be long to type or not easy to find out if used as function parameter, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
-  2. The type could really be of any type, e.g, tuple fields.
+  2. The type could really be of any type, e.g, struct fields.
 
 ## License
 

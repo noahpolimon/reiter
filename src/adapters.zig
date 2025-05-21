@@ -131,6 +131,7 @@ pub fn Take(comptime Impl: type) type {
 
         iter: Iter(Impl),
         n: usize,
+        comptime _: markers.IsTake = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.n == 0) return null;
@@ -285,6 +286,7 @@ pub fn Cycle(comptime Impl: type) type {
 
         orig: Iter(Impl),
         iter: Iter(Impl),
+        comptime _: markers.IsCycle = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.orig.next() orelse {
@@ -308,6 +310,7 @@ pub fn Skip(comptime Impl: type) type {
 
         iter: Iter(Impl),
         n: usize,
+        comptime _: markers.IsSkip = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.n > 0) {
@@ -362,6 +365,7 @@ pub fn SkipEvery(comptime Impl: type) type {
 
         iter: Iter(Impl),
         interval: usize,
+        comptime _: markers.IsSkipEvery = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.iter.nth(self.interval);
@@ -397,6 +401,7 @@ pub fn StepBy(comptime Impl: type) type {
 
         iter: Iter(Impl),
         step_minus_one: usize,
+        comptime _: markers.IsStepBy = .{},
 
         pub fn next(self: *Self) ?Item {
             const ret = self.iter.next();

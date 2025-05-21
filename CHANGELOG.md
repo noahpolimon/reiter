@@ -16,10 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Make `Iter.sizeHint` public but still experimental
 - Removed `Take.curr` field
+- Make `Peekable`, `Take`, `Cycle`, `Skip`, `SkipEvery` and `StepBy` not wrap themselves when chained.
 
 ### Fixed
 
 - Fixed tests names
+- Fixed some sizeHint() implementations in adapters
 - Fixed `reiter.recurse` example in README 
 
 ## [0.3.0] - 2024-05-20

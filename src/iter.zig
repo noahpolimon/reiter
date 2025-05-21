@@ -18,6 +18,7 @@ const SkipEvery = adapters.SkipEvery;
 const StepBy = adapters.StepBy;
 
 const markers = @import("markers.zig");
+const math_extra = @import("math_extra.zig");
 
 pub fn Iter(comptime Impl: type) type {
     comptime assertIsIter(Impl);
@@ -208,11 +209,23 @@ pub fn Iter(comptime Impl: type) type {
             } };
         }
 
-        pub fn take(self: Self, n: usize) Iter(Take(Impl)) {
+        const CanonicalTake =
+            if (markers.isMarked(Impl, markers.IsTake))
+                Self
+            else
+                Iter(Take(Impl));
+
+        pub fn take(self: Self, n: usize) CanonicalTake {
             return .{
-                .impl = .{
-                    .iter = self,
-                    .n = n,
+                .impl = switch (CanonicalTake) {
+                    Self => .{
+                        .iter = self.impl.iter,
+                        .n = math_extra.min(usize, self.impl.n, n),
+                    },
+                    else => .{
+                        .iter = self,
+                        .n = n,
+                    },
                 },
             };
         }
@@ -244,28 +257,58 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn peekable(self: Self) Iter(Peekable(Impl)) {
-            return .{
-                .impl = .{ .iter = self },
+        const CanonicalPeekable =
+            if (markers.isMarked(Impl, markers.IsPeekable))
+                Self
+            else
+                Iter(Peekable(Impl));
+
+        pub fn peekable(self: Self) CanonicalPeekable {
+            return switch (CanonicalPeekable) {
+                Self => self,
+                else => .{
+                    .impl = .{ .iter = self },
+                },
             };
         }
 
-        pub fn cycle(self: Self) Iter(Cycle(Impl)) {
-            return .{
-                .impl = .{
-                    .orig = self,
-                    .iter = .{
-                        .impl = self.impl,
+        const CanonicalCycle =
+            if (markers.isMarked(Impl, markers.IsCycle))
+                Self
+            else
+                Iter(Cycle(Impl));
+
+        pub fn cycle(self: Self) CanonicalCycle {
+            return switch (CanonicalCycle) {
+                Self => self,
+                else => .{
+                    .impl = .{
+                        .orig = self,
+                        .iter = .{
+                            .impl = self.impl,
+                        },
                     },
                 },
             };
         }
 
-        pub fn skip(self: Self, n: usize) Iter(Skip(Impl)) {
+        const CanonicalSkip =
+            if (markers.isMarked(Impl, markers.IsSkip))
+                Self
+            else
+                Iter(Skip(Impl));
+
+        pub fn skip(self: Self, n: usize) CanonicalSkip {
             return .{
-                .impl = .{
-                    .iter = self,
-                    .n = n,
+                .impl = switch (CanonicalSkip) {
+                    Self => .{
+                        .iter = self.impl.iter,
+                        .n = self.impl.n + n,
+                    },
+                    else => .{
+                        .iter = self,
+                        .n = n,
+                    },
                 },
             };
         }
@@ -279,22 +322,46 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn skipEvery(self: Self, interval: usize) Iter(SkipEvery(Impl)) {
+        const CanonicalSkipEvery =
+            if (markers.isMarked(Impl, markers.IsSkipEvery))
+                Self
+            else
+                Iter(SkipEvery(Impl));
+
+        pub fn skipEvery(self: Self, interval: usize) CanonicalSkipEvery {
             return .{
-                .impl = .{
-                    .iter = self,
-                    .interval = interval,
+                .impl = switch (CanonicalSkipEvery) {
+                    Self => .{
+                        .iter = self.impl.iter,
+                        .interval = self.impl.interval + interval,
+                    },
+                    else => .{
+                        .iter = self,
+                        .interval = interval,
+                    },
                 },
             };
         }
+
+        const CanonicalStepBy =
+            if (markers.isMarked(Impl, markers.IsStepBy))
+                Self
+            else
+                Iter(StepBy(Impl));
 
         /// panics when passing 0 to the `n` parameter
         pub fn stepBy(self: Self, n: usize) Iter(StepBy(Impl)) {
             std.debug.assert(n != 0);
             return .{
-                .impl = .{
-                    .iter = self,
-                    .step_minus_one = n - 1,
+                .impl = switch (CanonicalSkipEvery) {
+                    Self => .{
+                        .iter = self.impl.iter,
+                        .step_minus_one = self.impl.step_minus_one + (n - 1),
+                    },
+                    else => .{
+                        .iter = self,
+                        .step_minus_one = n - 1,
+                    },
                 },
             };
         }
