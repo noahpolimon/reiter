@@ -90,26 +90,26 @@ pub fn Iter(comptime Impl: type) type {
             return m;
         }
 
-        pub fn forEach(self: *Self, f: fn (Item) void) void {
+        pub fn forEach(self: *Self, f: *const fn (Item) void) void {
             while (self.next()) |item| {
                 f(item);
             }
         }
 
-        pub fn fallibleForEach(self: *Self, f: fn (Item) anyerror!void) !void {
+        pub fn fallibleForEach(self: *Self, f: *const fn (Item) anyerror!void) !void {
             while (self.next()) |item| {
                 try f(item);
             }
         }
 
-        pub fn fold(self: *Self, comptime U: type, acc: U, f: fn (U, Item) U) U {
+        pub fn fold(self: *Self, comptime U: type, acc: U, f: *const fn (U, Item) U) U {
             var x = acc;
             while (self.next()) |item|
                 x = f(x, item);
             return x;
         }
 
-        pub fn fallibleFold(self: *Self, comptime U: type, acc: U, f: fn (U, Item) anyerror!U) !U {
+        pub fn fallibleFold(self: *Self, comptime U: type, acc: U, f: *const fn (U, Item) anyerror!U) !U {
             var x = acc;
             while (self.next()) |item| {
                 x = try f(x, item);
@@ -117,7 +117,7 @@ pub fn Iter(comptime Impl: type) type {
             return x;
         }
 
-        pub fn reduce(self: *Self, f: fn (Item, Item) Item) ?Item {
+        pub fn reduce(self: *Self, f: *const fn (Item, Item) Item) ?Item {
             var acc = self.next() orelse return null;
             while (self.next()) |item| {
                 acc = f(acc, item);
@@ -126,7 +126,7 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         // experimental
-        fn fallibleReduce(self: *Self, f: fn (Item, Item) anyerror!Item) !?Item {
+        fn fallibleReduce(self: *Self, f: *const fn (Item, Item) anyerror!Item) !?Item {
             var acc = self.next() orelse return null;
             while (self.next()) |item| {
                 acc = try f(acc, item);
@@ -142,7 +142,7 @@ pub fn Iter(comptime Impl: type) type {
             }.call);
         }
 
-        pub fn find(self: *Self, predicate: fn (Item) bool) ?Item {
+        pub fn find(self: *Self, predicate: *const fn (Item) bool) ?Item {
             while (self.next()) |item| {
                 if (predicate(item)) return item;
             }
@@ -175,7 +175,7 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn map(self: Self, comptime R: type, f: fn (Item) R) Iter(Map(Impl, R)) {
+        pub fn map(self: Self, comptime R: type, f: *const fn (Item) R) Iter(Map(Impl, R)) {
             return .{
                 .impl = .{
                     .iter = self,
@@ -184,7 +184,7 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn mapWhile(self: Self, comptime R: type, f: fn (Item) ?R) Iter(MapWhile(Impl, R)) {
+        pub fn mapWhile(self: Self, comptime R: type, f: *const fn (Item) ?R) Iter(MapWhile(Impl, R)) {
             return .{
                 .impl = .{
                     .iter = self,
@@ -193,7 +193,7 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn filter(self: Self, predicate: fn (Item) bool) Iter(Filter(Impl)) {
+        pub fn filter(self: Self, predicate: *const fn (Item) bool) Iter(Filter(Impl)) {
             return .{
                 .impl = .{
                     .iter = self,
@@ -202,7 +202,7 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn filterMap(self: Self, comptime R: type, f: fn (Item) ?R) Iter(FilterMap(Impl, R)) {
+        pub fn filterMap(self: Self, comptime R: type, f: *const fn (Item) ?R) Iter(FilterMap(Impl, R)) {
             return .{ .impl = .{
                 .iter = self,
                 .f = f,
@@ -230,7 +230,7 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn takeWhile(self: Self, predicate: fn (Item) bool) Iter(TakeWhile(Impl)) {
+        pub fn takeWhile(self: Self, predicate: *const fn (Item) bool) Iter(TakeWhile(Impl)) {
             return .{
                 .impl = .{
                     .iter = self,
@@ -313,7 +313,7 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn skipWhile(self: Self, predicate: fn (Item) bool) Iter(SkipWhile(Impl)) {
+        pub fn skipWhile(self: Self, predicate: *const fn (Item) bool) Iter(SkipWhile(Impl)) {
             return .{
                 .impl = .{
                     .iter = self,
@@ -350,10 +350,10 @@ pub fn Iter(comptime Impl: type) type {
                 Iter(StepBy(Impl));
 
         /// panics when passing 0 to the `n` parameter
-        pub fn stepBy(self: Self, n: usize) Iter(StepBy(Impl)) {
+        pub fn stepBy(self: Self, n: usize) CanonicalStepBy {
             std.debug.assert(n != 0);
             return .{
-                .impl = switch (CanonicalSkipEvery) {
+                .impl = switch (CanonicalStepBy) {
                     Self => .{
                         .iter = self.impl.iter,
                         .step_minus_one = self.impl.step_minus_one + (n - 1),

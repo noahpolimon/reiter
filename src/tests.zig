@@ -436,7 +436,7 @@ test "Iter.skipEvery" {
 test "Iter.stepBy" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().stepBy(2).stepBy(0);
+    var x = my_iterator.iter().stepBy(2).stepBy(1);
 
     try testing.expectEqual(Iter(adapters.StepBy(MyIterator)), @TypeOf(x));
 

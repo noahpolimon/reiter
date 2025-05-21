@@ -76,7 +76,7 @@ fn LazyOnce(comptime T: type) type {
     };
 }
 
-pub fn lazyOnce(comptime T: type, f: fn () T) Iter(LazyOnce(T)) {
+pub fn lazyOnce(comptime T: type, f: *const fn () T) Iter(LazyOnce(T)) {
     return .{
         .impl = .{ .f = f },
     };
@@ -111,18 +111,16 @@ fn RepeatN(comptime T: type) type {
         pub const Item = T;
 
         item: T,
-        curr: usize = 0,
         n: usize,
 
         pub fn next(self: *Self) ?Item {
-            if (self.curr >= self.n) return null;
-            self.curr += 1;
+            if (self.n == 0) return null;
+            self.n -= 1;
             return self.item;
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            const size = self.n - self.curr;
-            return .{ size, size };
+            return .{ self.n, self.n };
         }
     };
 }
@@ -150,7 +148,7 @@ fn LazyRepeat(comptime T: type) type {
     };
 }
 
-pub fn lazyRepeat(comptime T: type, f: fn () T) Iter(LazyRepeat(T)) {
+pub fn lazyRepeat(comptime T: type, f: *const fn () T) Iter(LazyRepeat(T)) {
     return .{
         .impl = .{ .f = f },
     };
@@ -261,7 +259,7 @@ fn Recurse(comptime T: type) type {
     };
 }
 
-pub fn recurse(comptime T: type, init: T, f: fn (T) ?T) Iter(Recurse(T)) {
+pub fn recurse(comptime T: type, init: T, f: *const fn (T) ?T) Iter(Recurse(T)) {
     return .{
         .impl = .{
             .value = init,
