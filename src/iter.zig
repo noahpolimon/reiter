@@ -240,6 +240,8 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         pub fn chain(self: Self, other: anytype) Iter(Chain(Impl, @TypeOf(other.impl))) {
+            comptime assertIsIter(@TypeOf(other));
+            
             return .{
                 .impl = .{
                     .iter = self,
@@ -249,6 +251,8 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         pub fn zip(self: Self, other: anytype) Iter(Zip(Impl, @TypeOf(other.impl))) {
+            comptime assertIsIter(@TypeOf(other));
+
             return .{
                 .impl = .{
                     .iter = self,
