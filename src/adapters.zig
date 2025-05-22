@@ -7,12 +7,12 @@ const Iter = iter.Iter;
 const markers = @import("markers.zig");
 const math_extra = @import("math_extra.zig");
 
-pub fn Enumerate(comptime Impl: type) type {
+pub fn Enumerate(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = struct { usize, Impl.Item };
+        pub const Item = struct { usize, Wrapped.Item };
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         index: usize = 0,
 
         pub fn next(self: *Self) ?Item {
@@ -31,12 +31,12 @@ pub fn Enumerate(comptime Impl: type) type {
     };
 }
 
-pub fn Filter(comptime Impl: type) type {
+pub fn Filter(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         predicate: *const fn (Item) bool,
 
         pub fn next(self: *Self) ?Item {
@@ -53,13 +53,13 @@ pub fn Filter(comptime Impl: type) type {
     };
 }
 
-pub fn FilterMap(comptime Impl: type, comptime R: type) type {
+pub fn FilterMap(comptime Wrapped: type, comptime R: type) type {
     return struct {
         const Self = @This();
         pub const Item = R;
 
-        iter: Iter(Impl),
-        f: *const fn (Impl.Item) ?Item,
+        iter: Iter(Wrapped),
+        f: *const fn (Wrapped.Item) ?Item,
 
         pub fn next(self: *Self) ?Item {
             while (self.iter.next()) |item| {
@@ -77,13 +77,13 @@ pub fn FilterMap(comptime Impl: type, comptime R: type) type {
     };
 }
 
-pub fn Map(comptime Impl: type, comptime R: type) type {
+pub fn Map(comptime Wrapped: type, comptime R: type) type {
     return struct {
         const Self = @This();
         pub const Item = R;
 
-        iter: Iter(Impl),
-        f: *const fn (Impl.Item) Item,
+        iter: Iter(Wrapped),
+        f: *const fn (Wrapped.Item) Item,
 
         pub fn next(self: *Self) ?Item {
             return if (self.iter.next()) |item|
@@ -98,13 +98,13 @@ pub fn Map(comptime Impl: type, comptime R: type) type {
     };
 }
 
-pub fn MapWhile(comptime Impl: type, comptime R: type) type {
+pub fn MapWhile(comptime Wrapped: type, comptime R: type) type {
     return struct {
         const Self = @This();
         pub const Item = R;
 
-        iter: Iter(Impl),
-        f: *const fn (Impl.Item) ?Item,
+        iter: Iter(Wrapped),
+        f: *const fn (Wrapped.Item) ?Item,
 
         pub fn next(self: *Self) ?Item {
             while (self.iter.next()) |item| {
@@ -124,12 +124,12 @@ pub fn MapWhile(comptime Impl: type, comptime R: type) type {
     };
 }
 
-pub fn Take(comptime Impl: type) type {
+pub fn Take(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         n: usize,
         comptime _: markers.IsTake = .{},
 
@@ -157,12 +157,12 @@ pub fn Take(comptime Impl: type) type {
     };
 }
 
-pub fn TakeWhile(comptime Impl: type) type {
+pub fn TakeWhile(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         flag: bool = false,
         predicate: *const fn (Item) bool,
 
@@ -181,14 +181,14 @@ pub fn TakeWhile(comptime Impl: type) type {
     };
 }
 
-pub fn Chain(comptime Impl: type, comptime Other: type) type {
-    std.debug.assert(Impl.Item == Other.Item);
+pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
+    std.debug.assert(Wrapped.Item == Other.Item);
 
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         other: Iter(Other),
 
         pub fn next(self: *Self) ?Item {
@@ -212,12 +212,12 @@ pub fn Chain(comptime Impl: type, comptime Other: type) type {
     };
 }
 
-pub fn Zip(comptime Impl: type, comptime Other: type) type {
+pub fn Zip(comptime Wrapped: type, comptime Other: type) type {
     return struct {
         const Self = @This();
-        pub const Item = struct { Impl.Item, Other.Item };
+        pub const Item = struct { Wrapped.Item, Other.Item };
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         other: Iter(Other),
 
         pub fn next(self: *Self) ?Item {
@@ -245,12 +245,12 @@ pub fn Zip(comptime Impl: type, comptime Other: type) type {
     };
 }
 
-pub fn Peekable(comptime Impl: type) type {
+pub fn Peekable(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         peeked: ?Item = null,
         comptime _: markers.IsPeekable = .{},
 
@@ -279,13 +279,13 @@ pub fn Peekable(comptime Impl: type) type {
     };
 }
 
-pub fn Cycle(comptime Impl: type) type {
+pub fn Cycle(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        orig: Iter(Impl),
-        iter: Iter(Impl),
+        orig: Iter(Wrapped),
+        iter: Iter(Wrapped),
         comptime _: markers.IsCycle = .{},
 
         pub fn next(self: *Self) ?Item {
@@ -303,12 +303,12 @@ pub fn Cycle(comptime Impl: type) type {
     };
 }
 
-pub fn Skip(comptime Impl: type) type {
+pub fn Skip(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         n: usize,
         comptime _: markers.IsSkip = .{},
 
@@ -334,12 +334,12 @@ pub fn Skip(comptime Impl: type) type {
     };
 }
 
-pub fn SkipWhile(comptime Impl: type) type {
+pub fn SkipWhile(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         flag: bool = false,
         predicate: *const fn (Item) bool,
 
@@ -358,12 +358,12 @@ pub fn SkipWhile(comptime Impl: type) type {
     };
 }
 
-pub fn SkipEvery(comptime Impl: type) type {
+pub fn SkipEvery(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         interval: usize,
         comptime _: markers.IsSkipEvery = .{},
 
@@ -394,12 +394,12 @@ pub fn SkipEvery(comptime Impl: type) type {
     };
 }
 
-pub fn StepBy(comptime Impl: type) type {
+pub fn StepBy(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
+        pub const Item = Wrapped.Item;
 
-        iter: Iter(Impl),
+        iter: Iter(Wrapped),
         step_minus_one: usize,
         comptime _: markers.IsStepBy = .{},
 

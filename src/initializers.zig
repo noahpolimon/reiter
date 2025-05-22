@@ -17,9 +17,10 @@ fn Empty(comptime T: type) type {
     };
 }
 
+/// Creates an iterator that does not yield anything.
 pub fn empty(comptime T: type) Iter(Empty(T)) {
     return .{
-        .impl = .{},
+        .wrapped = .{},
     };
 }
 
@@ -44,10 +45,10 @@ fn Once(comptime T: type) type {
         }
     };
 }
-
+/// Creates an iterator that yields `item` only once.
 pub fn once(comptime T: type, item: T) Iter(Once(T)) {
     return .{
-        .impl = .{ .item = item },
+        .wrapped = .{ .item = item },
     };
 }
 
@@ -76,9 +77,10 @@ fn LazyOnce(comptime T: type) type {
     };
 }
 
+/// Creates an iterator that yields the return value of `f` once.
 pub fn lazyOnce(comptime T: type, f: *const fn () T) Iter(LazyOnce(T)) {
     return .{
-        .impl = .{ .f = f },
+        .wrapped = .{ .f = f },
     };
 }
 
@@ -99,9 +101,12 @@ fn Repeat(comptime T: type) type {
     };
 }
 
+/// Creates an iterator that yields `item` repeatedly.
+///
+/// Equivalent of using `reiter.once(T, item).cycle()`.
 pub fn repeat(comptime T: type, item: T) Iter(Repeat(T)) {
     return .{
-        .impl = .{ .item = item },
+        .wrapped = .{ .item = item },
     };
 }
 
@@ -125,9 +130,12 @@ fn RepeatN(comptime T: type) type {
     };
 }
 
+/// Creates an iterator that yields `item` `n` times.
+///
+/// Equivalent of using `reiter.once(T, item).cycle().take(n)`.
 pub fn repeatN(comptime T: type, item: T, n: usize) Iter(RepeatN(T)) {
     return .{
-        .impl = .{ .item = item, .n = n },
+        .wrapped = .{ .item = item, .n = n },
     };
 }
 
@@ -148,9 +156,12 @@ fn LazyRepeat(comptime T: type) type {
     };
 }
 
+/// Creates an iterator that yields the return value of `f` repeatedly.
+///
+/// Equivalent of using `reiter.lazyOnce(T, f).cycle()`
 pub fn lazyRepeat(comptime T: type, f: *const fn () T) Iter(LazyRepeat(T)) {
     return .{
-        .impl = .{ .f = f },
+        .wrapped = .{ .f = f },
     };
 }
 
@@ -176,9 +187,10 @@ fn FromSlice(comptime T: type) type {
     };
 }
 
+/// Creates an iterator that yields elements of a slice.
 pub fn fromSlice(comptime T: type, slice: []const T) Iter(FromSlice(T)) {
     return .{
-        .impl = .{ .slice = slice },
+        .wrapped = .{ .slice = slice },
     };
 }
 
@@ -215,17 +227,23 @@ fn FromRange(comptime T: type) type {
     };
 }
 
+/// Creates an iterator from an integer range with an inclusive `start` and exclusive `end`.
+///
+/// Panics if the range is not finite.
 pub fn fromRange(comptime T: type, start: T, end: T) Iter(FromRange(T)) {
     return fromRangeStep(T, start, end, 1);
 }
 
+/// Creates an iterator from an integer range with an inclusive `start`, exclusive `end` and non-zero `step`.
+///
+/// Panics if the range is not finite or `step` is zero.
 pub fn fromRangeStep(comptime T: type, start: T, end: T, step: T) Iter(FromRange(T)) {
     std.debug.assert(step != 0);
     // ensure range is finite
     std.debug.assert(end - start <= step * (end - start));
 
     return .{
-        .impl = .{
+        .wrapped = .{
             .start = start,
             .end = end,
             .step = step,
@@ -259,9 +277,12 @@ fn Recurse(comptime T: type) type {
     };
 }
 
+/// Computes the value of the next iteration from the last yielded value.
+///
+/// `init` is yielded first then the next value is computed from it.
 pub fn recurse(comptime T: type, init: T, f: *const fn (T) ?T) Iter(Recurse(T)) {
     return .{
-        .impl = .{
+        .wrapped = .{
             .value = init,
             .f = f,
         },

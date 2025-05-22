@@ -1,4 +1,5 @@
 const std = @import("std");
+const meta = std.meta;
 
 const adapters = @import("adapters.zig");
 const Enumerate = adapters.Enumerate;
@@ -20,48 +21,72 @@ const StepBy = adapters.StepBy;
 const markers = @import("markers.zig");
 const math_extra = @import("math_extra.zig");
 
-pub fn Iter(comptime Impl: type) type {
-    comptime assertIsIter(Impl);
+/// Generic iterator that provides various methods in addition to methods `Wrapped` should provide.
+///
+/// Constraints for `Wrapped` are as follows:
+/// - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields.
+/// - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.
+/// - `fn sizeHint(@This()) struct { usize, ?usize }` - This method is not compulsory. However if it were to be defined, it __*should*__ be public, have the same signature and return a correct value.
+pub fn Iter(comptime Wrapped: type) type {
+    comptime assertIsIter(Wrapped);
     return struct {
         const Self = @This();
-        pub const Item = Impl.Item;
 
-        impl: Impl,
+        /// Type yielded by iterator.
+        pub const Item = Wrapped.Item;
 
+        /// Value of the wrapped iterator.
+        ///
+        /// Not intended to be accessed directly.
+        wrapped: Wrapped,
+
+        /// Yields the next value from the iterator.
         pub fn next(self: *Self) ?Item {
-            return self.impl.next();
+            return self.wrapped.next();
         }
 
-        /// experimental
+        /// Returns a tuple containing the least and highest value of the length of the iterator.
+        ///
+        /// A least value `std.math.maxInt(usize)` or/and a highest value `null` represent an unknown or infinite length.
+        /// The default implementation returns `.{ 0, null }` which is correct for any iterator
+        ///
+        /// This method will be mostly used to get a size that minimizes allocations for the upcoming `Iter.collect()`.
+        ///
+        /// __Experimental__
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
-            if (std.meta.hasMethod(Impl, "sizeHint"))
-                return self.impl.sizeHint();
+            if (meta.hasMethod(Wrapped, "sizeHint"))
+                return self.wrapped.sizeHint();
 
             return .{ 0, null };
         }
 
+        /// Retrieves the next value without advancing the iterator.
+        ///
         /// This method is only callable when the iterator is peekable.
-        /// See `@import("adapters.zig").Peekable`.
+        /// See `Iter.peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (markers.isMarked(Impl, markers.IsPeekable))
-                return self.impl.peek();
+            if (markers.isMarked(Wrapped, markers.IsPeekable))
+                return self.wrapped.peek();
 
-            if (std.meta.hasMethod(Impl, "peek"))
+            if (meta.hasMethod(Wrapped, "peek"))
                 @compileError("`peek` method is not overridable")
             else
-                @compileError(@typeName(Impl) ++ " is not peekable");
+                @compileError(@typeName(Wrapped) ++ " is not peekable");
         }
 
+        /// Advances the iterator by `n`
         fn advanceBy(self: *Self, n: usize) ?void {
             for (0..n) |_|
                 _ = self.next() orelse return null;
         }
 
+        /// Advances the iterator by `n`, then returns the next value.
         pub fn nth(self: *Self, n: usize) ?Item {
             self.advanceBy(n) orelse return null;
             return self.next();
         }
 
+        /// Consumes the iterator to count its number of elements.
         pub fn count(self: *Self) usize {
             return self.fold(usize, 0, struct {
                 fn call(acc: usize, _: Item) usize {
@@ -70,10 +95,15 @@ pub fn Iter(comptime Impl: type) type {
             }.call);
         }
 
+        /// Returns `true` immediately on finding the first element for which the predicate is true.
+        ///
+        /// Equivalent of using `.filter(predicate).next()`
         pub fn any(self: *Self, predicate: *const fn (Item) bool) bool {
             return self.find(predicate) != null;
         }
 
+        /// Returns `true` if all the elements of the iterator for which the predicate is true,
+        /// short-circuiting on the first element for which the predicate is false.
         pub fn all(self: *Self, predicate: *const fn (Item) bool) bool {
             while (self.next()) |item| {
                 if (!predicate(item)) return false;
@@ -81,6 +111,7 @@ pub fn Iter(comptime Impl: type) type {
             return true;
         }
 
+        /// Consumes the iterator to obtain the minimum value from the iterator. Type of `Item` should be comparable.
         pub fn min(self: *Self) ?Item {
             var m = self.next() orelse return null;
             while (self.next()) |item| {
@@ -91,6 +122,7 @@ pub fn Iter(comptime Impl: type) type {
             return m;
         }
 
+        /// Consumes the iterator to obtain the maximum value from the iterator. Type of `Item` should be comparable.
         pub fn max(self: *Self) ?Item {
             var m = self.next() orelse return null;
             while (self.next()) |item| {
@@ -101,18 +133,21 @@ pub fn Iter(comptime Impl: type) type {
             return m;
         }
 
+        /// Consumes the iterator and applies `f` on each elements. This method does not yield anything.
         pub fn forEach(self: *Self, f: *const fn (Item) void) void {
             while (self.next()) |item| {
                 f(item);
             }
         }
 
+        /// Fallible version of `.forEach()`. Both `f` and the method returns `anyerror!void`
         pub fn fallibleForEach(self: *Self, f: *const fn (Item) anyerror!void) !void {
             while (self.next()) |item| {
                 try f(item);
             }
         }
 
+        /// Consumes the iterator and folds it into a single value by accumulating a value computed by `f`.
         pub fn fold(self: *Self, comptime U: type, acc: U, f: *const fn (U, Item) U) U {
             var x = acc;
             while (self.next()) |item|
@@ -120,6 +155,7 @@ pub fn Iter(comptime Impl: type) type {
             return x;
         }
 
+        /// Fallible version of `.fold()`. Both `f` and the method returns `anyerror!U`
         pub fn fallibleFold(self: *Self, comptime U: type, acc: U, f: *const fn (U, Item) anyerror!U) !U {
             var x = acc;
             while (self.next()) |item| {
@@ -128,6 +164,9 @@ pub fn Iter(comptime Impl: type) type {
             return x;
         }
 
+        /// Consumes the iterator and reduces it into a single value by accumulating a value computed by `f`.
+        ///
+        /// `null` is returned if the iterator is empty.
         pub fn reduce(self: *Self, f: *const fn (Item, Item) Item) ?Item {
             var acc = self.next() orelse return null;
             while (self.next()) |item| {
@@ -136,7 +175,7 @@ pub fn Iter(comptime Impl: type) type {
             return acc;
         }
 
-        // experimental
+        /// Fallible version of `.reduce()`. Both `f` and the method returns `anyerror!?Item`
         fn fallibleReduce(self: *Self, f: *const fn (Item, Item) anyerror!Item) !?Item {
             var acc = self.next() orelse return null;
             while (self.next()) |item| {
@@ -145,6 +184,7 @@ pub fn Iter(comptime Impl: type) type {
             return acc;
         }
 
+        /// Consumes the iterator and returns its last value.
         pub fn last(self: *Self) ?Item {
             return self.reduce(struct {
                 fn call(_: Item, item: Item) Item {
@@ -153,6 +193,7 @@ pub fn Iter(comptime Impl: type) type {
             }.call);
         }
 
+        /// Returns the first item for which the predicate is true.
         pub fn find(self: *Self, predicate: *const fn (Item) bool) ?Item {
             while (self.next()) |item| {
                 if (predicate(item)) return item;
@@ -180,58 +221,68 @@ pub fn Iter(comptime Impl: type) type {
             return list.items;
         }
 
-        pub fn enumerate(self: Self) Iter(Enumerate(Impl)) {
+        /// Creates an iterator that yields enumerated values in the form of `struct { usize, Item }` tuples.
+        pub fn enumerate(self: Self) Iter(Enumerate(Wrapped)) {
             return .{
-                .impl = .{ .iter = self },
+                .wrapped = .{ .iter = self },
             };
         }
 
-        pub fn map(self: Self, comptime R: type, f: *const fn (Item) R) Iter(Map(Impl, R)) {
+        /// Creates an iterator that transforms each value of the wrapped iterator using `f` before yielding them.
+        pub fn map(self: Self, comptime R: type, f: *const fn (Item) R) Iter(Map(Wrapped, R)) {
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .f = f,
                 },
             };
         }
 
-        pub fn mapWhile(self: Self, comptime R: type, f: *const fn (Item) ?R) Iter(MapWhile(Impl, R)) {
+        /// Creates an iterator that yields mapped values while `f` does not return `null`.
+        pub fn mapWhile(self: Self, comptime R: type, f: *const fn (Item) ?R) Iter(MapWhile(Wrapped, R)) {
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .f = f,
                 },
             };
         }
-
-        pub fn filter(self: Self, predicate: *const fn (Item) bool) Iter(Filter(Impl)) {
+        /// Creates an iterator that yields only values for which the predicate is true.
+        pub fn filter(self: Self, predicate: *const fn (Item) bool) Iter(Filter(Wrapped)) {
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .predicate = predicate,
                 },
             };
         }
 
-        pub fn filterMap(self: Self, comptime R: type, f: *const fn (Item) ?R) Iter(FilterMap(Impl, R)) {
-            return .{ .impl = .{
-                .iter = self,
-                .f = f,
-            } };
+        /// Creates an iterator that transforms values for which `func` does not return `null`
+        pub fn filterMap(self: Self, comptime R: type, f: *const fn (Item) ?R) Iter(FilterMap(Wrapped, R)) {
+            return .{
+                .wrapped = .{
+                    .iter = self,
+                    .f = f,
+                },
+            };
         }
 
         const CanonicalTake =
-            if (markers.isMarked(Impl, markers.IsTake))
+            if (markers.isMarked(Wrapped, markers.IsTake))
                 Self
             else
-                Iter(Take(Impl));
+                Iter(Take(Wrapped));
 
+        /// Creates an iterator that yields only its first `n` elements.
+        ///
+        /// Successive calls on the same iterator, i.e `.take(n).take(n1)...take(nN)`, will not wrap itself.
+        /// The least value of `n` will be considered.
         pub fn take(self: Self, n: usize) CanonicalTake {
             return .{
-                .impl = switch (CanonicalTake) {
+                .wrapped = switch (CanonicalTake) {
                     Self => .{
-                        .iter = self.impl.iter,
-                        .n = math_extra.min(usize, self.impl.n, n),
+                        .iter = self.wrapped.iter,
+                        .n = math_extra.min(usize, self.wrapped.n, n),
                     },
                     else => .{
                         .iter = self,
@@ -241,31 +292,35 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn takeWhile(self: Self, predicate: *const fn (Item) bool) Iter(TakeWhile(Impl)) {
+        /// Creates an iterator that yields elements for which the predicate is true.
+        pub fn takeWhile(self: Self, predicate: *const fn (Item) bool) Iter(TakeWhile(Wrapped)) {
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .predicate = predicate,
                 },
             };
         }
-
-        pub fn chain(self: Self, other: anytype) Iter(Chain(Impl, @TypeOf(other.impl))) {
+        /// Creates an iterator that yields the value of the original iterator and then the value of the chained one.
+        ///
+        /// The only constraint is that the two iterators should yield the same value type.
+        pub fn chain(self: Self, other: anytype) Iter(Chain(Wrapped, @TypeOf(other.wrapped))) {
             comptime assertIsIter(@TypeOf(other));
 
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .other = other,
                 },
             };
         }
 
-        pub fn zip(self: Self, other: anytype) Iter(Zip(Impl, @TypeOf(other.impl))) {
+        /// Creates an iterator that yields paired values in the form of `struct { Item, Other.Item }` until 1 of the iterators is consumed.
+        pub fn zip(self: Self, other: anytype) Iter(Zip(Wrapped, @TypeOf(other.wrapped))) {
             comptime assertIsIter(@TypeOf(other));
 
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .other = other,
                 },
@@ -273,34 +328,42 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         const CanonicalPeekable =
-            if (markers.isMarked(Impl, markers.IsPeekable))
+            if (markers.isMarked(Wrapped, markers.IsPeekable))
                 Self
             else
-                Iter(Peekable(Impl));
+                Iter(Peekable(Wrapped));
 
+        /// Creates an iterator that provides the `.peek()` method. See `Iter.peek`
+        ///
+        /// Successive calls on the same iterator, i.e `.peekable().peekable()...peekable()`, will not wrap itself.
+        /// Calls after the first one will return the same object.
         pub fn peekable(self: Self) CanonicalPeekable {
             return switch (CanonicalPeekable) {
                 Self => self,
                 else => .{
-                    .impl = .{ .iter = self },
+                    .wrapped = .{ .iter = self },
                 },
             };
         }
 
         const CanonicalCycle =
-            if (markers.isMarked(Impl, markers.IsCycle))
+            if (markers.isMarked(Wrapped, markers.IsCycle))
                 Self
             else
-                Iter(Cycle(Impl));
+                Iter(Cycle(Wrapped));
 
+        /// Creates an iterator that resets instead of yielding `null` when it is consumed.
+        ///
+        /// Successive calls on the same iterator, i.e `.cycle().cycle()...cycle()`, will not wrap itself.
+        /// Calls after the first one will return the same object.
         pub fn cycle(self: Self) CanonicalCycle {
             return switch (CanonicalCycle) {
                 Self => self,
                 else => .{
-                    .impl = .{
+                    .wrapped = .{
                         .orig = self,
                         .iter = .{
-                            .impl = self.impl,
+                            .wrapped = self.wrapped,
                         },
                     },
                 },
@@ -308,17 +371,21 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         const CanonicalSkip =
-            if (markers.isMarked(Impl, markers.IsSkip))
+            if (markers.isMarked(Wrapped, markers.IsSkip))
                 Self
             else
-                Iter(Skip(Impl));
+                Iter(Skip(Wrapped));
 
+        /// Creates an iterator that skips `n` elements before starting to yield.
+        ///
+        /// Successive calls on the same iterator, i.e `.skip(n).skip(n)...skip(nN)`, will not wrap itself.
+        /// The sum of `n`'s will be considered.
         pub fn skip(self: Self, n: usize) CanonicalSkip {
             return .{
-                .impl = switch (CanonicalSkip) {
+                .wrapped = switch (CanonicalSkip) {
                     Self => .{
-                        .iter = self.impl.iter,
-                        .n = self.impl.n + n,
+                        .iter = self.wrapped.iter,
+                        .n = self.wrapped.n + n,
                     },
                     else => .{
                         .iter = self,
@@ -328,9 +395,10 @@ pub fn Iter(comptime Impl: type) type {
             };
         }
 
-        pub fn skipWhile(self: Self, predicate: *const fn (Item) bool) Iter(SkipWhile(Impl)) {
+        /// Creates an iterator that skips elements until the predicate is false.
+        pub fn skipWhile(self: Self, predicate: *const fn (Item) bool) Iter(SkipWhile(Wrapped)) {
             return .{
-                .impl = .{
+                .wrapped = .{
                     .iter = self,
                     .predicate = predicate,
                 },
@@ -338,17 +406,21 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         const CanonicalSkipEvery =
-            if (markers.isMarked(Impl, markers.IsSkipEvery))
+            if (markers.isMarked(Wrapped, markers.IsSkipEvery))
                 Self
             else
-                Iter(SkipEvery(Impl));
+                Iter(SkipEvery(Wrapped));
 
+        /// Creates an iterator that skips `n` elements before yielding each element.
+        ///
+        /// Successive calls on the same iterator, i.e `.skipEvery(interval).skip(interval1)...skip(intervalN)`, will not wrap itself.
+        /// The sum of `interval`s will be considered.
         pub fn skipEvery(self: Self, interval: usize) CanonicalSkipEvery {
             return .{
-                .impl = switch (CanonicalSkipEvery) {
+                .wrapped = switch (CanonicalSkipEvery) {
                     Self => .{
-                        .iter = self.impl.iter,
-                        .interval = self.impl.interval + interval,
+                        .iter = self.wrapped.iter,
+                        .interval = self.wrapped.interval + interval,
                     },
                     else => .{
                         .iter = self,
@@ -359,19 +431,24 @@ pub fn Iter(comptime Impl: type) type {
         }
 
         const CanonicalStepBy =
-            if (markers.isMarked(Impl, markers.IsStepBy))
+            if (markers.isMarked(Wrapped, markers.IsStepBy))
                 Self
             else
-                Iter(StepBy(Impl));
+                Iter(StepBy(Wrapped));
 
-        /// panics when passing 0 to the `n` parameter
+        /// Creates an iterator that skips `n - 1` elements after yielding each element.
+        ///
+        /// Successive calls on the same iterator, i.e `.stepBy(n).skip(n1)...skip(nN)`, will not wrap itself.
+        /// The sum of (`n - 1`)'s will be considered.
+        ///
+        /// panics when passing 0 as the `n` parameter
         pub fn stepBy(self: Self, n: usize) CanonicalStepBy {
             std.debug.assert(n != 0);
             return .{
-                .impl = switch (CanonicalStepBy) {
+                .wrapped = switch (CanonicalStepBy) {
                     Self => .{
-                        .iter = self.impl.iter,
-                        .step_minus_one = self.impl.step_minus_one + (n - 1),
+                        .iter = self.wrapped.iter,
+                        .step_minus_one = self.wrapped.step_minus_one + (n - 1),
                     },
                     else => .{
                         .iter = self,
@@ -392,7 +469,7 @@ inline fn assertIsIter(comptime T: type) void {
         @compileError(@typeName(T) ++ " must be of type `type`");
 
     // check for next()
-    if (!std.meta.hasMethod(T, "next"))
+    if (!meta.hasMethod(T, "next"))
         @compileError(@typeName(T) ++ " must have a public `next` method");
 
     if (@TypeOf(T.next) != fn (*T) ?T.Item)

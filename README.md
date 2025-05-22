@@ -135,7 +135,7 @@ Voila! You may now import and use the reiter library.
 - Creates an iterator that skips `n` elements every time it yields an element.
 
 `.stepBy(n)`
-- Simillar to `.skipEvery()`. However the first element of the iterator is yielded, then `n` elements are skipped.
+- Simillar to `.skipEvery()`. However the first element of the iterator is yielded, then `n - 1` elements are skipped.
 
 > ...more to come
 
@@ -182,7 +182,7 @@ const MyIterator = struct {
     // method or any other way. However, any equivalent method/function to the 
     // one below should return `Iter(@This())`.
     pub fn iter(self: Self) Iter(Self) {
-        return .{ .impl = self };
+        return .{ .wrapped = self };
     }
 };
 ```
@@ -360,6 +360,7 @@ Initializers are pre-made functions that can be used to create iterators for a p
 * Avoid using `anytype` wherever possible unless: 
   1. The type would be long to type or not easy to find out if used as function parameter, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
   2. The type could really be of any type, e.g, struct fields.
+* Does not redundantly include "zig" in the name. (see [zig -o- 236fb91](http://github.com/ziglang/zig/commit/236fb915cc1c3b59b47e609125b680743c9c1ec0))
 
 ## License
 

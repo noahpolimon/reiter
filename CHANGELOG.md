@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Implement `Iter.any` and `Iter.all`
+- Doc comments 
 
 ### Changed
 
 - Assert if `other` parameter in `Iter.chain` and `Iter.zip` is an iterator
+- Renamed `Iter.impl` to `Iter.wrappped`
 
 ## [0.4.0] - 2024-05-22
 

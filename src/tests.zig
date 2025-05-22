@@ -1,5 +1,6 @@
 const std = @import("std");
-const testing = std.testing;
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
 
 const reiter = @import("root.zig");
 const adapters = @import("adapters.zig");
@@ -27,9 +28,7 @@ const MyIterator = struct {
     }
 
     pub fn iter(self: Self) Iter(Self) {
-        return .{
-            .impl = self,
-        };
+        return .{ .wrapped = self };
     }
 };
 
@@ -41,8 +40,8 @@ test "Iter.nth" {
 
     const nth = x.nth(3);
 
-    try testing.expectEqual('z', nth);
-    try testing.expectEqual(null, x.next());
+    try expectEqual('z', nth);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.any" {
@@ -56,8 +55,8 @@ test "Iter.any" {
         }
     }.call);
 
-    try testing.expect(any);
-    try testing.expectEqual('z', x.next());
+    try expect(any);
+    try expectEqual('z', x.next());
 }
 
 test "Iter.all" {
@@ -71,8 +70,8 @@ test "Iter.all" {
         }
     }.call);
 
-    try testing.expect(!all);
-    try testing.expectEqual('z', x.next());
+    try expect(!all);
+    try expectEqual('z', x.next());
 }
 
 test "Iter.min" {
@@ -82,8 +81,8 @@ test "Iter.min" {
 
     const min = x.min();
 
-    try testing.expectEqual('w', min);
-    try testing.expectEqual(null, x.next());
+    try expectEqual('w', min);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.max" {
@@ -93,8 +92,8 @@ test "Iter.max" {
 
     const max = x.max();
 
-    try testing.expectEqual('z', max);
-    try testing.expectEqual(null, x.next());
+    try expectEqual('z', max);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.count" {
@@ -104,8 +103,8 @@ test "Iter.count" {
 
     const count = x.count();
 
-    try testing.expectEqual(4, count);
-    try testing.expectEqual(null, x.next());
+    try expectEqual(4, count);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.reduce" {
@@ -119,8 +118,8 @@ test "Iter.reduce" {
         }
     }.call);
 
-    try testing.expectEqual(41, reduced);
-    try testing.expectEqual(null, x.next());
+    try expectEqual(41, reduced);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.last" {
@@ -130,8 +129,8 @@ test "Iter.last" {
 
     const last = x.last();
 
-    try testing.expectEqual('z', last);
-    try testing.expectEqual(null, x.next());
+    try expectEqual('z', last);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.fold" {
@@ -145,8 +144,8 @@ test "Iter.fold" {
         }
     }.call);
 
-    try testing.expectEqual(482, folded);
-    try testing.expectEqual(null, x.next());
+    try expectEqual(482, folded);
+    try expectEqual(null, x.next());
 }
 
 test "Iter.forEach" {
@@ -156,11 +155,11 @@ test "Iter.forEach" {
 
     x.forEach(struct {
         fn call(i: u8) void {
-            testing.expect(i >= 'w' and i <= 'z') catch unreachable;
+            expect(i >= 'w' and i <= 'z') catch unreachable;
         }
     }.call);
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.find" {
@@ -174,10 +173,10 @@ test "Iter.find" {
         }
     }.call);
 
-    try testing.expectEqual('x', found);
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual('z', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('x', found);
+    try expectEqual('y', x.next());
+    try expectEqual('z', x.next());
+    try expectEqual(null, x.next());
 }
 
 //
@@ -188,16 +187,16 @@ test "Iter.enumerate" {
 
     var x = my_iterator.iter().enumerate();
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ my_iterator.buffer.len, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
     for (0..my_iterator.buffer.len) |i| {
-        try testing.expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
+        try expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
     }
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.filter" {
@@ -209,13 +208,13 @@ test "Iter.filter" {
         }
     }.call);
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ 0, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('w', x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.filterMap" {
@@ -228,15 +227,15 @@ test "Iter.filterMap" {
         }
     }.call);
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ 0, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual(null, x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('w', x.next());
+    try expectEqual('x', x.next());
+    try expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.map" {
@@ -248,16 +247,16 @@ test "Iter.map" {
         }
     }.call);
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ my_iterator.buffer.len, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual(true, x.next());
-    try testing.expectEqual(false, x.next());
-    try testing.expectEqual(false, x.next());
-    try testing.expectEqual(false, x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual(true, x.next());
+    try expectEqual(false, x.next());
+    try expectEqual(false, x.next());
+    try expectEqual(false, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.mapWhile" {
@@ -271,16 +270,16 @@ test "Iter.mapWhile" {
         }
     }.call);
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ 0, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual(true, x.next());
-    try testing.expectEqual(null, x.next());
-    try testing.expectEqual(null, x.next());
-    try testing.expectEqual(false, x.next()); // this is not a problem
-    try testing.expectEqual(null, x.next());
+    try expectEqual(true, x.next());
+    try expectEqual(null, x.next());
+    try expectEqual(null, x.next());
+    try expectEqual(false, x.next()); // this is not a problem
+    try expectEqual(null, x.next());
 }
 
 test "Iter.take" {
@@ -288,16 +287,16 @@ test "Iter.take" {
 
     var x = my_iterator.iter().take(2).take(5);
 
-    try testing.expectEqual(Iter(adapters.Take(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(adapters.Take(MyIterator)), @TypeOf(x));
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ 2, 2 },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('w', x.next());
+    try expectEqual('x', x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.takeWhile" {
@@ -309,15 +308,15 @@ test "Iter.takeWhile" {
         }
     }.call);
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ 0, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('w', x.next());
+    try expectEqual('x', x.next());
+    try expectEqual('y', x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.chain" {
@@ -325,22 +324,22 @@ test "Iter.chain" {
 
     var x = my_iterator.iter().chain(my_iterator.iter());
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ my_iterator.buffer.len * 2, my_iterator.buffer.len * 2 },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual('z', x.next());
+    try expectEqual('w', x.next());
+    try expectEqual('x', x.next());
+    try expectEqual('y', x.next());
+    try expectEqual('z', x.next());
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual('z', x.next());
+    try expectEqual('w', x.next());
+    try expectEqual('x', x.next());
+    try expectEqual('y', x.next());
+    try expectEqual('z', x.next());
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.zip" {
@@ -348,17 +347,17 @@ test "Iter.zip" {
 
     var x = my_iterator.iter().zip(my_iterator.iter());
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ my_iterator.buffer.len, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual(.{ 'w', 'w' }, x.next());
-    try testing.expectEqual(.{ 'x', 'x' }, x.next());
-    try testing.expectEqual(.{ 'y', 'y' }, x.next());
-    try testing.expectEqual(.{ 'z', 'z' }, x.next());
+    try expectEqual(.{ 'w', 'w' }, x.next());
+    try expectEqual(.{ 'x', 'x' }, x.next());
+    try expectEqual(.{ 'y', 'y' }, x.next());
+    try expectEqual(.{ 'z', 'z' }, x.next());
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.peekable" {
@@ -366,29 +365,29 @@ test "Iter.peekable" {
 
     var x = my_iterator.iter().peekable().peekable();
 
-    try testing.expectEqual(Iter(adapters.Peekable(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(adapters.Peekable(MyIterator)), @TypeOf(x));
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ my_iterator.buffer.len, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('w', x.peek());
-    try testing.expectEqual('w', x.peek());
-    try testing.expectEqual('w', x.peek());
-    try testing.expectEqual('w', x.next());
+    try expectEqual('w', x.peek());
+    try expectEqual('w', x.peek());
+    try expectEqual('w', x.peek());
+    try expectEqual('w', x.next());
 
-    try testing.expectEqual('x', x.next());
+    try expectEqual('x', x.next());
 
-    try testing.expectEqual('y', x.next());
+    try expectEqual('y', x.next());
 
-    try testing.expectEqual('z', x.peek());
-    try testing.expectEqual('z', x.peek());
-    try testing.expectEqual('z', x.peek());
-    try testing.expectEqual('z', x.next());
+    try expectEqual('z', x.peek());
+    try expectEqual('z', x.peek());
+    try expectEqual('z', x.peek());
+    try expectEqual('z', x.next());
 
-    try testing.expectEqual(null, x.peek());
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.peek());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.cycle" {
@@ -396,15 +395,15 @@ test "Iter.cycle" {
 
     var x = my_iterator.iter().cycle().cycle();
 
-    try testing.expectEqual(Iter(adapters.Cycle(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(adapters.Cycle(MyIterator)), @TypeOf(x));
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ std.math.maxInt(usize), null },
         x.sizeHint(),
     );
 
     for (0..1_000_000) |i| {
-        try testing.expectEqual(
+        try expectEqual(
             my_iterator.buffer[i % my_iterator.buffer.len],
             x.next(),
         );
@@ -416,17 +415,17 @@ test "Iter.skip" {
 
     var x = my_iterator.iter().skip(1).skip(0);
 
-    try testing.expectEqual(Iter(adapters.Skip(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(adapters.Skip(MyIterator)), @TypeOf(x));
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ my_iterator.buffer.len - 1, my_iterator.buffer.len - 1 },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual('z', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('x', x.next());
+    try expectEqual('y', x.next());
+    try expectEqual('z', x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.skipWhile" {
@@ -439,14 +438,14 @@ test "Iter.skipWhile" {
         }
     }.call);
 
-    try testing.expectEqual(
+    try expectEqual(
         .{ 0, my_iterator.buffer.len },
         x.sizeHint(),
     );
 
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual('z', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('y', x.next());
+    try expectEqual('z', x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.skipEvery" {
@@ -454,13 +453,13 @@ test "Iter.skipEvery" {
 
     var x = my_iterator.iter().skipEvery(1).skipEvery(0);
 
-    try testing.expectEqual(Iter(adapters.SkipEvery(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(adapters.SkipEvery(MyIterator)), @TypeOf(x));
 
-    try testing.expect(x.sizeHint().@"0" >= my_iterator.buffer.len / 2);
+    try expect(x.sizeHint().@"0" >= my_iterator.buffer.len / 2);
 
-    try testing.expectEqual('x', x.next());
-    try testing.expectEqual('z', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('x', x.next());
+    try expectEqual('z', x.next());
+    try expectEqual(null, x.next());
 }
 
 test "Iter.stepBy" {
@@ -468,11 +467,11 @@ test "Iter.stepBy" {
 
     var x = my_iterator.iter().stepBy(2).stepBy(1);
 
-    try testing.expectEqual(Iter(adapters.StepBy(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(adapters.StepBy(MyIterator)), @TypeOf(x));
 
-    try testing.expectEqual('w', x.next());
-    try testing.expectEqual('y', x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual('w', x.next());
+    try expectEqual('y', x.next());
+    try expectEqual(null, x.next());
 }
 
 //
@@ -485,28 +484,28 @@ fn returnOne() u32 {
 test "reiter.empty" {
     var x = reiter.empty(u32);
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "reiter.once" {
     var x = reiter.once(u32, 1);
 
-    try testing.expectEqual(1, x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual(1, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "reiter.lazyOnce" {
     var x = reiter.lazyOnce(u32, returnOne);
 
-    try testing.expectEqual(1, x.next());
-    try testing.expectEqual(null, x.next());
+    try expectEqual(1, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "reiter.repeat" {
     var x = reiter.repeat(u32, 1);
 
     for (0..1_000_000) |_| {
-        try testing.expectEqual(1, x.next());
+        try expectEqual(1, x.next());
     }
 }
 
@@ -515,17 +514,17 @@ test "reiter.repeatN" {
     var x = reiter.repeatN(u32, 1, n);
 
     for (0..n) |_| {
-        try testing.expectEqual(1, x.next());
+        try expectEqual(1, x.next());
     }
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "reiter.lazyRepeat" {
     var x = reiter.lazyRepeat(u32, returnOne);
 
     for (0..1_000_000) |_| {
-        try testing.expectEqual(1, x.next());
+        try expectEqual(1, x.next());
     }
 }
 
@@ -536,10 +535,10 @@ test "reiter.fromSlice" {
 
     for (0..slice.len) |i| {
         const j: u32 = @intCast(i);
-        try testing.expectEqual(j, x.next());
+        try expectEqual(j, x.next());
     }
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 test "reiter.fromRange" {
@@ -550,10 +549,10 @@ test "reiter.fromRange" {
 
     for (from..to) |i| {
         const j: u32 = @intCast(i);
-        try testing.expectEqual(j, x.next());
+        try expectEqual(j, x.next());
     }
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 fn doubleUntil100(i: u32) ?u32 {
@@ -568,11 +567,11 @@ test "reiter.recurse" {
     var x = reiter.recurse(u32, init, doubleUntil100);
 
     for (init..init + 100) |_| {
-        try testing.expectEqual(init, x.next());
+        try expectEqual(init, x.next());
         init = doubleUntil100(init) orelse break;
     }
 
-    try testing.expectEqual(null, x.next());
+    try expectEqual(null, x.next());
 }
 
 // TODO: add more test cases
@@ -596,7 +595,7 @@ test "all" {
             }
         }.call);
 
-        try testing.expectEqual(241, folded);
+        try expectEqual(241, folded);
     }
     {
         const x = my_iterator.iter()
@@ -612,7 +611,7 @@ test "all" {
 
         try chained.fallibleForEach(struct {
             fn call(i: u32) !void {
-                try testing.expect(i == 239 or i == 242);
+                try expect(i == 239 or i == 242);
             }
         }.call);
     }
