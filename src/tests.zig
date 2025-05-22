@@ -45,6 +45,36 @@ test "Iter.nth" {
     try testing.expectEqual(null, x.next());
 }
 
+test "Iter.any" {
+    const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter();
+
+    const any = x.any(struct {
+        fn call(i: u8) bool {
+            return i == 'y';
+        }
+    }.call);
+
+    try testing.expect(any);
+    try testing.expectEqual('z', x.next());
+}
+
+test "Iter.all" {
+    const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter();
+
+    const all = x.all(struct {
+        fn call(i: u8) bool {
+            return i < 'y';
+        }
+    }.call);
+
+    try testing.expect(!all);
+    try testing.expectEqual('z', x.next());
+}
+
 test "Iter.min" {
     const my_iterator = MyIterator{};
 

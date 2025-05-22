@@ -56,18 +56,26 @@ Voila! You may now import and use the reiter library.
 
 `.sizeHint()` (experimental)
 - Returns a tuple containing a lower bound and upper bound of the length of the remaining items in the iterator. A lower bound of value `std.math.maxInt(usize)` or/and an upper bound of value `null` represent an unknown or infinite length.  
+- This method, if defined by an implementation, should return correct values.
 
 `.nth(n)`
 - Advances the iterator by `n`, then returns the next element. Returns `null` if the iterator is consumed before `n` is reached.
+
+`.count()` 
+- Consumes the iterator to count its number of elements.
+  
+`.any(predicate)`
+- Returns `true` on finding the first element for which the predicate is true. 
+- Consumes the iterator completely if none of the elements returns `true` for the predicate or if only the last element does.
+  
+`.all(predicate)`
+- Returns `true` if all the elements of the iterator for which the predicate is true, short-circuiting on the first element for which the predicate is false.
 
 `.min()`
 - Consumes the iterator to obtain the minimum value from the iterator. Type of `Item` should be comparable.
 
 `.max()`
 - Consumes the iterator to obtain the maximum value from the iterator. Type of `Item` should be comparable.
-
-`.count()` 
-- Consumes the iterator to count its number of elements.
 
 `.forEach(func)` 
 - Consumes the iterator and applies the function on each elements. This method does not yield anything.
@@ -207,7 +215,8 @@ struct {
 }.call
 ```
 
-Zig does not (and i think most likely will not) support closures.
+Zig does not (and i think most likely will not) support closures. In the case it does in the future, this library will 
+be updated to align with it.
 
 ## Examples
 

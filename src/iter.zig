@@ -70,6 +70,17 @@ pub fn Iter(comptime Impl: type) type {
             }.call);
         }
 
+        pub fn any(self: *Self, predicate: *const fn (Item) bool) bool {
+            return self.find(predicate) != null;
+        }
+
+        pub fn all(self: *Self, predicate: *const fn (Item) bool) bool {
+            while (self.next()) |item| {
+                if (!predicate(item)) return false;
+            }
+            return true;
+        }
+
         pub fn min(self: *Self) ?Item {
             var m = self.next() orelse return null;
             while (self.next()) |item| {
@@ -241,7 +252,7 @@ pub fn Iter(comptime Impl: type) type {
 
         pub fn chain(self: Self, other: anytype) Iter(Chain(Impl, @TypeOf(other.impl))) {
             comptime assertIsIter(@TypeOf(other));
-            
+
             return .{
                 .impl = .{
                     .iter = self,

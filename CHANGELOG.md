@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Implement `Iter.any` and `Iter.all`
+
 ### Changed
 
 - Assert if `other` parameter in `Iter.chain` and `Iter.zip` is an iterator
