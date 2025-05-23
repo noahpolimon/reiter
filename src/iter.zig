@@ -96,8 +96,6 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         /// Returns `true` immediately on finding the first element for which the predicate is true.
-        ///
-        /// Equivalent of using `.filter(predicate).next()`
         pub fn any(self: *Self, predicate: *const fn (Item) bool) bool {
             return self.find(predicate) != null;
         }
