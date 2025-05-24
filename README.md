@@ -144,8 +144,7 @@ Voila! You may now import and use the reiter library.
 `Iter` is a generic iterator that yields values from some kind of collection, range, indexable, etc... lazily. Iterators should have the following when "implementing" `Iter`:
 
 - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields. 
-- `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature. 
-- `fn sizeHint(@This()) struct { usize, ?usize }` - This method is not compulsory. However if it were to be defined, it __*should*__ be public and have the same signature. The default implementation returns `.{ 0, null }` which is correct for any iterator.
+- `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.  
 
 An example implementation would be:
 

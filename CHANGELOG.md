@@ -16,11 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Assert if `other` parameter in `Iter.chain` and `Iter.zip` is an iterator
 - Renamed `Iter.impl` to `Iter.wrappped`
+- Made `Iter.advanceBy` public
+- Made `Iter.advanceBy`, `Iter.nth` and `Iter.count` overridable
 
 ### Fixed 
 
 - Changed type of `Peekable.peeked` field from `?Item` to `??Item` to fix incorrect size hint
-
 
 ## [0.4.0] - 2024-05-22
 

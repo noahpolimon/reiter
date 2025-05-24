@@ -26,12 +26,13 @@ const math_extra = @import("math_extra.zig");
 /// Constraints for `Wrapped` are as follows:
 /// - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields.
 /// - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.
-/// - `fn sizeHint(@This()) struct { usize, ?usize }` - This method is not compulsory. However if it were to be defined, it __*should*__ be public, have the same signature and return a correct value.
 pub fn Iter(comptime Wrapped: type) type {
     comptime assertIsIter(Wrapped);
     return struct {
         const Self = @This();
 
+        /// __[ Required ]__
+        ///
         /// Type yielded by iterator.
         pub const Item = Wrapped.Item;
 
@@ -40,11 +41,15 @@ pub fn Iter(comptime Wrapped: type) type {
         /// Not intended to be accessed directly.
         wrapped: Wrapped,
 
+        /// __[ Required ]__
+        ///
         /// Yields the next value from the iterator.
         pub fn next(self: *Self) ?Item {
             return self.wrapped.next();
         }
 
+        /// __[ Experimental ] [ Overridable ]__
+        ///
         /// Returns a tuple containing the least and highest value of the length of the iterator.
         ///
         /// A least value `std.math.maxInt(usize)` or/and a highest value `null` represent an unknown or infinite length.
@@ -52,7 +57,6 @@ pub fn Iter(comptime Wrapped: type) type {
         ///
         /// This method will be mostly used to get a size that minimizes allocations for the upcoming `Iter.collect()`.
         ///
-        /// __Experimental__
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             if (meta.hasMethod(Wrapped, "sizeHint"))
                 return self.wrapped.sizeHint();
@@ -74,20 +78,37 @@ pub fn Iter(comptime Wrapped: type) type {
                 @compileError(@typeName(Wrapped) ++ " is not peekable");
         }
 
-        /// Advances the iterator by `n`
-        fn advanceBy(self: *Self, n: usize) ?void {
+        /// __[ Experimental ] [ Overridable ]__
+        ///
+        /// Advances the iterator by `n`.
+        ///
+        /// Override to make optimizations but avoid using.
+        pub fn advanceBy(self: *Self, n: usize) ?void {
+            if (meta.hasMethod(Wrapped, "advanceBy"))
+                return self.wrapped.advanceBy(n);
+
             for (0..n) |_|
                 _ = self.next() orelse return null;
         }
 
+        /// __[ Overridable ]__
+        ///
         /// Advances the iterator by `n`, then returns the next value.
         pub fn nth(self: *Self, n: usize) ?Item {
+            if (meta.hasMethod(Wrapped, "nth"))
+                return self.wrapped.nth(n);
+
             self.advanceBy(n) orelse return null;
             return self.next();
         }
 
+        /// __[ Overridable ]__
+        ///
         /// Consumes the iterator to count its number of elements.
         pub fn count(self: *Self) usize {
+            if (meta.hasMethod(Wrapped, "count"))
+                return self.wrapped.count();
+
             return self.fold(usize, 0, struct {
                 fn call(acc: usize, _: Item) usize {
                     return acc + 1;
@@ -146,7 +167,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         /// Consumes the iterator and folds it into a single value by accumulating a value computed by `f`.
-        pub fn fold(self: *Self, comptime U: type, acc: U, f: *const fn (U, Item) U) U {
+        pub fn fold(self: *Self, comptime R: type, acc: R, f: *const fn (R, Item) R) R {
             var x = acc;
             while (self.next()) |item|
                 x = f(x, item);
@@ -154,7 +175,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         /// Fallible version of `.fold()`. Both `f` and the method returns `anyerror!U`
-        pub fn fallibleFold(self: *Self, comptime U: type, acc: U, f: *const fn (U, Item) anyerror!U) !U {
+        pub fn fallibleFold(self: *Self, comptime R: type, acc: R, f: *const fn (R, Item) anyerror!R) !R {
             var x = acc;
             while (self.next()) |item| {
                 x = try f(x, item);
@@ -439,7 +460,7 @@ pub fn Iter(comptime Wrapped: type) type {
         /// Successive calls on the same iterator, i.e `.stepBy(n).skip(n1)...skip(nN)`, will not wrap itself.
         /// The sum of (`n - 1`)'s will be considered.
         ///
-        /// panics when passing 0 as the `n` parameter
+        /// Panics if `n` is zero.
         pub fn stepBy(self: Self, n: usize) CanonicalStepBy {
             std.debug.assert(n != 0);
             return .{

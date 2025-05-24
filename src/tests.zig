@@ -22,9 +22,28 @@ const MyIterator = struct {
         return ret;
     }
 
+    pub fn advanceBy(self: *Self, n: usize) ?void {
+        const result = self.curr + n;
+        if (result >= self.buffer.len) return null;
+        self.curr = result;
+    }
+
+    pub fn nth(self: *Self, n: usize) ?Item {
+        const result = self.curr + n;
+        if (result >= self.buffer.len) return null;
+        self.curr = result + 1;
+        return self.buffer[result];
+    }
+
     pub fn sizeHint(self: Self) struct { usize, ?usize } {
         const s = self.buffer.len - self.curr;
         return .{ s, s };
+    }
+
+    pub fn count(self: *Self) usize {
+        const c = self.buffer.len - self.curr;
+        self.curr = self.buffer.len;
+        return c;
     }
 
     pub fn iter(self: Self) Iter(Self) {
