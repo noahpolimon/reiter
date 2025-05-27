@@ -15,13 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Assert if `other` parameter in `Iter.chain` and `Iter.zip` is an iterator
-- Renamed `Iter.impl` to `Iter.wrappped`
-- Made `Iter.advanceBy` public
-- Made `Iter.advanceBy`, `Iter.nth` and `Iter.count` overridable
+- Rename `Iter.impl` to `Iter.wrappped`
+- Make `Iter.advanceBy` public
+- Make `Iter.advanceBy`, `Iter.nth` and `Iter.count` overridable
+- Override `Iter.advanceBy`, `Iter.nth` and `Iter.count` in most initializers
 
 ### Fixed 
 
 - Changed type of `Peekable.peeked` field from `?Item` to `??Item` to fix incorrect size hint
+- Assertion for `fromRangeStep` finite range was incorrect as it could lead to an overflow error
+- `FromRange` worked only unsigned integer types
 
 ## [0.4.0] - 2024-05-22
 

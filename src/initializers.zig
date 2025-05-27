@@ -14,6 +14,18 @@ fn Empty(comptime T: type) type {
         pub fn sizeHint(_: Self) struct { usize, ?usize } {
             return .{ 0, 0 };
         }
+
+        pub fn advanceBy(_: *Self, n: usize) ?void {
+            if (n > 0) return null;
+        }
+
+        pub fn nth(_: *Self, _: usize) ?Item {
+            return null;
+        }
+
+        pub fn count(_: *Self) usize {
+            return 0;
+        }
     };
 }
 
@@ -42,6 +54,15 @@ fn Once(comptime T: type) type {
                 return .{ 1, 1 };
 
             return .{ 0, 0 };
+        }
+
+        pub fn count(self: *Self) usize {
+            if (self.item) |_| {
+                self.item = null;
+                return 1;
+            }
+
+            return 0;
         }
     };
 }
@@ -74,6 +95,15 @@ fn LazyOnce(comptime T: type) type {
 
             return .{ 0, 0 };
         }
+
+        pub fn count(self: *Self) usize {
+            if (self.f) |_| {
+                self.f = null;
+                return 1;
+            }
+
+            return 0;
+        }
     };
 }
 
@@ -97,6 +127,16 @@ fn Repeat(comptime T: type) type {
 
         pub fn sizeHint(_: Self) struct { usize, ?usize } {
             return .{ std.math.maxInt(usize), null };
+        }
+
+        pub fn advanceBy(_: *Self, _: usize) ?void {}
+
+        pub fn nth(self: *Self, _: usize) ?Item {
+            return self.item;
+        }
+
+        pub fn count(_: *Self) usize {
+            return std.math.maxInt(usize);
         }
     };
 }
@@ -127,6 +167,24 @@ fn RepeatN(comptime T: type) type {
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             return .{ self.n, self.n };
         }
+
+        pub fn advanceBy(self: *Self, n: usize) ?void {
+            if (n == 0) return;
+            if (n > self.n or self.n == 0) return null;
+            self.n -= n;
+        }
+
+        pub fn nth(self: *Self, n: usize) ?Item {
+            if (n + 1 > self.n or self.n == 0) return null;
+            self.n -= n + 1;
+            return self.item;
+        }
+
+        pub fn count(self: *Self) usize {
+            const ret = self.n;
+            self.n = 0;
+            return ret;
+        }
     };
 }
 
@@ -152,6 +210,16 @@ fn LazyRepeat(comptime T: type) type {
 
         pub fn sizeHint(_: Self) struct { usize, ?usize } {
             return .{ std.math.maxInt(usize), null };
+        }
+
+        pub fn advanceBy(_: *Self, _: usize) ?void {}
+
+        pub fn nth(self: *Self, _: usize) ?Item {
+            return self.f();
+        }
+
+        pub fn count(_: *Self) usize {
+            return std.math.maxInt(usize);
         }
     };
 }
@@ -184,6 +252,22 @@ fn FromSlice(comptime T: type) type {
             const size = self.slice.len - self.curr;
             return .{ size, size };
         }
+
+        pub fn advanceBy(self: *Self, n: usize) ?void {
+            self.curr = self.curr + n;
+            if (self.curr >= self.slice.len) return null;
+        }
+
+        pub fn nth(self: *Self, n: usize) ?Item {
+            self.curr = self.curr + n;
+            return self.next();
+        }
+
+        pub fn count(self: *Self) usize {
+            const c = self.slice.len - self.curr;
+            self.curr = self.slice.len;
+            return c;
+        }
     };
 }
 
@@ -203,10 +287,15 @@ fn FromRange(comptime T: type) type {
 
         start: T,
         end: T,
+        // Safety: treat as non-zero
         step: T,
 
+        inline fn isConsumed(self: Self) bool {
+            return if (self.step > 0) self.start >= self.end else self.start <= self.end;
+        }
+
         pub fn next(self: *Self) ?Item {
-            if (self.start >= self.end) return null;
+            if (self.isConsumed()) return null;
             const x = self.start;
             self.start += self.step;
             return x;
@@ -219,10 +308,30 @@ fn FromRange(comptime T: type) type {
             const size = std.math.divTrunc(
                 usize,
                 size_step_one,
-                @abs(self.step),
-            ) catch 0;
+                self.step,
+            ) catch unreachable;
 
             return .{ size, size };
+        }
+
+        pub fn advanceBy(self: *Self, n: usize) ?void {
+            self.start += self.step * @as(T, @intCast(n));
+            if (self.isConsumed()) return null;
+        }
+
+        pub fn nth(self: *Self, n: usize) ?Item {
+            self.start += self.step * @as(T, @intCast(n));
+            return self.next();
+        }
+
+        pub fn count(self: *Self) usize {
+            const c = std.math.divTrunc(
+                usize,
+                self.end - self.start,
+                self.step,
+            ) catch unreachable;
+            self.start = self.end;
+            return c;
         }
     };
 }
@@ -240,7 +349,7 @@ pub fn fromRange(comptime T: type, start: T, end: T) Iter(FromRange(T)) {
 pub fn fromRangeStep(comptime T: type, start: T, end: T, step: T) Iter(FromRange(T)) {
     std.debug.assert(step != 0);
     // ensure range is finite
-    std.debug.assert(end - start <= step * (end - start));
+    std.debug.assert(if (step > 0) start < end else start > end);
 
     return .{
         .wrapped = .{

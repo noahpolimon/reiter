@@ -320,9 +320,9 @@ pub fn Iter(comptime Wrapped: type) type {
                 },
             };
         }
-        /// Creates an iterator that yields the value of the original iterator and then the value of the chained one.
+        /// Creates an iterator that yields values from the original iterator and then from the chained one.
         ///
-        /// The only constraint is that the two iterators should yield the same value type.
+        /// The two iterators should yield the same value type.
         pub fn chain(self: Self, other: anytype) Iter(Chain(Wrapped, @TypeOf(other.wrapped))) {
             comptime assertIsIter(@TypeOf(other));
 

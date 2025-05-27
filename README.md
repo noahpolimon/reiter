@@ -1,4 +1,11 @@
-# reiter
+<div align="center">
+
+# ⚡reiter  
+
+[![Zig Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Fnoahpolimon%2Freiter%2Fblob%2Fmain%2Fbuild.zig.zon&search=.minimum_zig_version%20%3D%20%5C%5C%22(%5Cd*%5C.%5Cd*%5C.%5Cd*)%5C%5C%22%2C&replace=v%241&style=flat&logo=zig&label=zig)](https://ziglang.org/documentation/master/)
+[![Release Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Fnoahpolimon%2Freiter%2Fblob%2Fmain%2Fbuild.zig.zon&search=.version%20%3D%20%5C%5C%22(%5Cd*%5C.%5Cd*%5C.%5Cd*)%5C%5C%22%2C&replace=v%241&style=flat&logo=semanticrelease&label=reiter)](https://github.com/noahpolimon/reiter/releases)
+
+</div>
 
 `reiter` enables Ziglings to effortlessly create their own iterators for their favourite types. Iterators can be made for native Zig types, std/external library types or any other types.
 
@@ -56,7 +63,6 @@ Voila! You may now import and use the reiter library.
 
 `.sizeHint()` (experimental)
 - Returns a tuple containing a lower bound and upper bound of the length of the remaining items in the iterator. A lower bound of value `std.math.maxInt(usize)` or/and an upper bound of value `null` represent an unknown or infinite length.  
-- This method, if defined by an implementation, should return correct values.
 
 `.nth(n)`
 - Advances the iterator by `n`, then returns the next element. Returns `null` if the iterator is consumed before `n` is reached.

@@ -1,4 +1,5 @@
 const std = @import("std");
+const math = std.math;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
@@ -523,17 +524,47 @@ test "reiter.empty" {
 }
 
 test "reiter.once" {
-    var x = reiter.once(u32, 1);
+    {
+        var x = reiter.once(u32, 1);
 
-    try expectEqual(1, x.next());
-    try expectEqual(null, x.next());
+        try expectEqual(1, x.next());
+        try expectEqual(null, x.next());
+    }
+    {
+        var x = reiter.once(u32, 43);
+
+        try expectEqual(1, x.count());
+        try expectEqual(0, x.count());
+        try expectEqual(null, x.next());
+        try expectEqual(0, x.count());
+        try expectEqual(null, x.next());
+    }
 }
 
 test "reiter.lazyOnce" {
-    var x = reiter.lazyOnce(u32, returnOne);
+    {
+        var x = reiter.lazyOnce(u32, struct {
+            fn call() u32 {
+                return 1;
+            }
+        }.call);
 
-    try expectEqual(1, x.next());
-    try expectEqual(null, x.next());
+        try expectEqual(1, x.next());
+        try expectEqual(null, x.next());
+    }
+    {
+        var x = reiter.lazyOnce(u32, struct {
+            fn call() u32 {
+                return 43;
+            }
+        }.call);
+
+        try expectEqual(1, x.count());
+        try expectEqual(0, x.count());
+        try expectEqual(null, x.next());
+        try expectEqual(0, x.count());
+        try expectEqual(null, x.next());
+    }
 }
 
 test "reiter.repeat" {
@@ -542,13 +573,18 @@ test "reiter.repeat" {
     for (0..1_000_000) |_| {
         try expectEqual(1, x.next());
     }
+
+    try expectEqual(math.maxInt(usize), x.count());
 }
 
 test "reiter.repeatN" {
     const n = 10;
     var x = reiter.repeatN(u32, 1, n);
 
-    for (0..n) |_| {
+    try expectEqual({}, x.advanceBy(1));
+    try expectEqual(1, x.nth(1));
+
+    for (0..n - 3) |_| {
         try expectEqual(1, x.next());
     }
 
@@ -561,16 +597,20 @@ test "reiter.lazyRepeat" {
     for (0..1_000_000) |_| {
         try expectEqual(1, x.next());
     }
+
+    try expectEqual(math.maxInt(usize), x.count());
 }
 
 test "reiter.fromSlice" {
-    const slice = [_]u32{ 0, 1, 2, 3, 4, 5 };
+    const slice = [_]u32{ 70, 51, 32, 13, 48, 65 };
 
     var x = reiter.fromSlice(u32, &slice);
 
-    for (0..slice.len) |i| {
-        const j: u32 = @intCast(i);
-        try expectEqual(j, x.next());
+    try expectEqual({}, x.advanceBy(2));
+    try expectEqual(13, x.nth(1));
+
+    for (4..slice.len) |i| {
+        try expectEqual(slice[i], x.next());
     }
 
     try expectEqual(null, x.next());
@@ -580,23 +620,64 @@ test "reiter.fromRange" {
     const from = 0;
     const to = 10;
 
-    var x = reiter.fromRange(u32, from, to);
+    var x = reiter.fromRange(usize, from, to);
 
-    for (from..to) |i| {
-        const j: u32 = @intCast(i);
-        try expectEqual(j, x.next());
+    try expectEqual({}, x.advanceBy(2));
+    try expectEqual(3, x.nth(1));
+
+    for (from + 4..to) |i| {
+        try expectEqual(i, x.next());
     }
 
     try expectEqual(null, x.next());
 }
 
-fn doubleUntil100(i: u32) ?u32 {
-    const x = i * 2;
-    if (x >= 100) return null;
-    return x;
+test "reiter.fromRangeStep" {
+    {
+        const from = 0;
+        const to = 20;
+        const step = 2;
+
+        var x = reiter.fromRangeStep(usize, from, to, step);
+
+        try expectEqual({}, x.advanceBy(2));
+        try expectEqual(6, x.nth(1));
+
+        var i: usize = from + 8;
+        while (i < to) : (i += step) {
+            try expectEqual(i, x.next());
+        }
+
+        try expectEqual(null, x.next());
+    }
+    {
+        const from = 20;
+        const to = 0;
+        const step = -2;
+
+        var x = reiter.fromRangeStep(isize, from, to, step);
+
+        try expectEqual({}, x.advanceBy(2));
+        try expectEqual(14, x.nth(1));
+
+        var i: isize = from - 8;
+        while (i > to) : (i += step) {
+            try expectEqual(i, x.next());
+        }
+
+        try expectEqual(null, x.next());
+    }
 }
 
 test "reiter.recurse" {
+    const doubleUntil100 = struct {
+        fn call(i: u32) ?u32 {
+            const x = i * 2;
+            if (x >= 100) return null;
+            return x;
+        }
+    }.call;
+
     var init: u32 = 1;
 
     var x = reiter.recurse(u32, init, doubleUntil100);
