@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Implement `Iter.any` and `Iter.all`
 - Doc comments 
+- `/docs` directory
 
 ### Changed
 
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `Iter.advanceBy` public
 - Make `Iter.advanceBy`, `Iter.nth` and `Iter.count` overridable
 - Override `Iter.advanceBy`, `Iter.nth` and `Iter.count` in most initializers
+- Move documentation for Methods on Iter to `/docs/METHODS-ON-ITER.md`
 
 ### Fixed 
 
