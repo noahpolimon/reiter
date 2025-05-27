@@ -62,8 +62,9 @@ Voila! You may now import and use the reiter library.
 
 - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields. 
 - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.  
+- `fn <method_name>(@This()) Iter(@This())` - A public method that returns the wrapped iterator. 
 
-An example implementation would be:
+A simple implementation would look like the example below:
 
 ```zig
 // Import `Iter` from the lib 
@@ -89,11 +90,6 @@ const MyIterator = struct {
         return ret;
     }
 
-    pub fn sizeHint(self: Self) struct { usize, ?usize } {
-        const s = self.buffer.len - self.index;
-        return .{ s, s };
-    }
-
     // This is just an example. You may choose to use an `init` or `from`
     // method or any other way. However, any equivalent method/function to the 
     // one below should return `Iter(@This())`.
@@ -103,7 +99,7 @@ const MyIterator = struct {
 };
 ```
 
-After creating an iterator it is possible to use and chain methods like any Rust iterators.
+After creating an iterator it is possible to use and chain methods like so:
 
 ```zig
 const my_iterator = MyIterator{};
@@ -137,6 +133,10 @@ be updated to align with it.
 ## Examples
 
 More examples are found in the `examples` directory. 
+
+## Methods on Iter
+
+See [here](/docs/METHODS-ON-ITER.md) to know which methods can be used on iterators.
 
 ## Initializers
 
@@ -269,10 +269,6 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // 4
     _ = i.next(); // null
     ```
-
-## Methods on Iter
-
-See [here](/docs/METHODS-ON-ITER.md) to know which methods can be used on iterators.
 
 ## Project Particulars
 
