@@ -29,13 +29,19 @@ pub fn saturatingSub(comptime T: type, a: T, b: T) T {
     switch (@typeInfo(T)) {
         .int,
         .comptime_int,
-        .float,
-        .comptime_float,
         => return math.sub(T, a, b) catch {
-            return if (math.sign(a) < math.sign(b))
+            return if (a < b)
                 0
             else
                 math.maxInt(T);
+        },
+        .float,
+        .comptime_float,
+        => return math.sub(T, a, b) catch {
+            return if (a < b)
+                0
+            else
+                math.floatMax(T);
         },
         else => @compileError("Only integer and float types supported"),
     }

@@ -28,6 +28,11 @@ pub fn Enumerate(comptime Wrapped: type) type {
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             return self.iter.sizeHint();
         }
+
+        pub fn advanceBy(self: *Self, n: usize) ?void {
+            self.iter.advanceBy(n) orelse return null;
+            self.index += n;
+        }
     };
 }
 
@@ -153,6 +158,14 @@ pub fn Take(comptime Wrapped: type) type {
                 upper = if (u < self.n) u else self.n;
 
             return .{ lower, upper };
+        }
+
+        pub fn advanceBy(self: *Self, n: usize) ?void {
+            self.n = math.sub(usize, self.n, n) catch {
+                self.n = 0;
+                return null;
+            };
+            self.iter.advanceBy(n) orelse return null;
         }
     };
 }
@@ -311,6 +324,8 @@ pub fn Cycle(comptime Wrapped: type) type {
             lower = if (lower == 0) lower else math.maxInt(usize);
             return .{ lower, null };
         }
+
+        pub fn advancedBy(_: *Self, _: usize) ?void {}
     };
 }
 
@@ -414,15 +429,15 @@ pub fn StepBy(comptime Wrapped: type) type {
         step_minus_one: usize,
         comptime _: markers.IsStepBy = .{},
 
+        fn originalStep(self: Self) usize {
+            return self.step_minus_one + 1;
+        }
+        
         pub fn next(self: *Self) ?Item {
             const ret = self.iter.next();
             if (self.step_minus_one >= 1)
                 _ = self.iter.nth(self.step_minus_one - 1);
             return ret;
-        }
-
-        fn originalStep(self: Self) usize {
-            return self.step_minus_one + 1;
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {

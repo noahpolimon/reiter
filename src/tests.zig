@@ -212,10 +212,13 @@ test "Iter.enumerate" {
         x.sizeHint(),
     );
 
-    for (0..my_iterator.buffer.len) |i| {
+    try expectEqual({}, x.advanceBy(1));
+
+    for (1..my_iterator.buffer.len) |i| {
         try expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
     }
 
+    try expectEqual(null, x.advanceBy(1));
     try expectEqual(null, x.next());
 }
 
@@ -314,9 +317,11 @@ test "Iter.take" {
         x.sizeHint(),
     );
 
-    try expectEqual('w', x.next());
+    try expectEqual({}, x.advanceBy(1));
     try expectEqual('x', x.next());
+
     try expectEqual(null, x.next());
+    try expectEqual(null, x.advanceBy(1));
 }
 
 test "Iter.takeWhile" {
