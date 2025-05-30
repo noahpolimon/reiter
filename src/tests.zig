@@ -401,20 +401,32 @@ test "Iter.chain" {
 
 test "Iter.zip" {
     const my_iterator = MyIterator{};
+    const my_iterator2 = MyIterator{ .buffer = "vwxyz" };
 
-    var x = my_iterator.iter().zip(my_iterator.iter());
+    {
+        var x = my_iterator.iter().zip(my_iterator2.iter());
 
-    try expectEqual(
-        .{ my_iterator.buffer.len, my_iterator.buffer.len },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len, my_iterator.buffer.len },
+            x.sizeHint(),
+        );
 
-    try expectEqual(.{ 'w', 'w' }, x.next());
-    try expectEqual(.{ 'x', 'x' }, x.next());
-    try expectEqual(.{ 'y', 'y' }, x.next());
-    try expectEqual(.{ 'z', 'z' }, x.next());
+        try expectEqual(.{ 'w', 'v' }, x.next());
+        try expectEqual(.{ 'x', 'w' }, x.next());
+        try expectEqual(.{ 'y', 'x' }, x.next());
+        try expectEqual(.{ 'z', 'y' }, x.next());
 
-    try expectEqual(null, x.next());
+        try expectEqual(null, x.next());
+    }
+    {
+        var x = my_iterator.iter().zip(my_iterator2.iter());
+
+        try expectEqual(1, x.advanceBy(5));
+
+        try expectEqual(2, x.advanceBy(2));
+        try expectEqual(null, x.next());
+        try expectEqual(2, x.advanceBy(2));
+    }
 }
 
 test "Iter.peekable" {

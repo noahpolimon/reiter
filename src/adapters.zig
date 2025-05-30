@@ -261,6 +261,14 @@ pub fn Zip(comptime Wrapped: type, comptime Other: type) type {
 
             return .{ lower, upper };
         }
+
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            return math_extra.max(
+                usize,
+                self.iter.advanceBy(n),
+                self.other.advanceBy(n),
+            );
+        }
     };
 }
 

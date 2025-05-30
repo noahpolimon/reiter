@@ -24,12 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Override `Iter.advanceBy` for `Enumerate`, `Take`, `Cycle`
 - Make `Iter.advanceBy` return a `usize` representing how much the iterator was not advanced if it is consumed.
 - Override `Iter.advanceBy` for `Chain`
+- Override `Iter.advanceBy` for `Zip`
 
 ### Fixed 
 
 - Changed type of `Peekable.peeked` field from `?Item` to `??Item` to fix incorrect size hint
 - Assertion for `fromRangeStep` finite range was incorrect as it could lead to an overflow error
-- `FromRange` worked only unsigned integer types
+- `FromRange` worked only for unsigned integer types
 
 ## [0.4.0] - 2024-05-22
 
