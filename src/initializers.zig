@@ -1,4 +1,5 @@
 const std = @import("std");
+const math = std.math;
 
 const Iter = @import("iter.zig").Iter;
 
@@ -15,8 +16,8 @@ fn Empty(comptime T: type) type {
             return .{ 0, 0 };
         }
 
-        pub fn advanceBy(_: *Self, n: usize) ?void {
-            if (n > 0) return null;
+        pub fn advanceBy(_: *Self, n: usize) usize {
+            return n;
         }
 
         pub fn nth(_: *Self, _: usize) ?Item {
@@ -126,17 +127,19 @@ fn Repeat(comptime T: type) type {
         }
 
         pub fn sizeHint(_: Self) struct { usize, ?usize } {
-            return .{ std.math.maxInt(usize), null };
+            return .{ math.maxInt(usize), null };
         }
 
-        pub fn advanceBy(_: *Self, _: usize) ?void {}
+        pub fn advanceBy(_: *Self, _: usize) usize {
+            return 0;
+        }
 
         pub fn nth(self: *Self, _: usize) ?Item {
             return self.item;
         }
 
         pub fn count(_: *Self) usize {
-            return std.math.maxInt(usize);
+            return math.maxInt(usize);
         }
     };
 }
@@ -168,10 +171,11 @@ fn RepeatN(comptime T: type) type {
             return .{ self.n, self.n };
         }
 
-        pub fn advanceBy(self: *Self, n: usize) ?void {
-            if (n == 0) return;
-            if (n > self.n or self.n == 0) return null;
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            if (n == 0) return 0;
+            if (n > self.n or self.n == 0) return n - self.n;
             self.n -= n;
+            return 0;
         }
 
         pub fn nth(self: *Self, n: usize) ?Item {
@@ -209,17 +213,19 @@ fn LazyRepeat(comptime T: type) type {
         }
 
         pub fn sizeHint(_: Self) struct { usize, ?usize } {
-            return .{ std.math.maxInt(usize), null };
+            return .{ math.maxInt(usize), null };
         }
 
-        pub fn advanceBy(_: *Self, _: usize) ?void {}
+        pub fn advanceBy(_: *Self, _: usize) usize {
+            return 0;
+        }
 
         pub fn nth(self: *Self, _: usize) ?Item {
             return self.f();
         }
 
         pub fn count(_: *Self) usize {
-            return std.math.maxInt(usize);
+            return math.maxInt(usize);
         }
     };
 }
@@ -253,13 +259,17 @@ fn FromSlice(comptime T: type) type {
             return .{ size, size };
         }
 
-        pub fn advanceBy(self: *Self, n: usize) ?void {
-            self.curr = self.curr + n;
-            if (self.curr >= self.slice.len) return null;
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            const result = self.curr + n;
+            if (result > self.slice.len) {
+                return result - self.slice.len;
+            }
+            self.curr = result;
+            return 0;
         }
 
         pub fn nth(self: *Self, n: usize) ?Item {
-            self.curr = self.curr + n;
+            self.curr += n;
             return self.next();
         }
 
@@ -305,7 +315,7 @@ fn FromRange(comptime T: type) type {
             const size_step_one = self.end - self.start;
 
             // TODO: test
-            const size = std.math.divTrunc(
+            const size = math.divTrunc(
                 usize,
                 size_step_one,
                 self.step,
@@ -314,18 +324,8 @@ fn FromRange(comptime T: type) type {
             return .{ size, size };
         }
 
-        pub fn advanceBy(self: *Self, n: usize) ?void {
-            self.start += self.step * @as(T, @intCast(n));
-            if (self.isConsumed()) return null;
-        }
-
-        pub fn nth(self: *Self, n: usize) ?Item {
-            self.start += self.step * @as(T, @intCast(n));
-            return self.next();
-        }
-
         pub fn count(self: *Self) usize {
-            const c = std.math.divTrunc(
+            const c = math.divTrunc(
                 usize,
                 self.end - self.start,
                 self.step,

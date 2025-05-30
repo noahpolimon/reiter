@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Override `Iter.advanceBy`, `Iter.nth` and `Iter.count` in most initializers
 - Move documentation for Methods on Iter to `/docs/METHODS-ON-ITER.md`
 - Override `Iter.advanceBy` in Enumerate, Take, Cycle
+- Make `Iter.advanceBy` return a `usize` representing how much the iterator was not advanced if it is consumed.
 
 ### Fixed 
 

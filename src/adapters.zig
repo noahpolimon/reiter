@@ -29,9 +29,10 @@ pub fn Enumerate(comptime Wrapped: type) type {
             return self.iter.sizeHint();
         }
 
-        pub fn advanceBy(self: *Self, n: usize) ?void {
-            self.iter.advanceBy(n) orelse return null;
-            self.index += n;
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            const i = self.iter.advanceBy(n);
+            self.index += n - i;
+            return i;
         }
     };
 }
@@ -160,12 +161,13 @@ pub fn Take(comptime Wrapped: type) type {
             return .{ lower, upper };
         }
 
-        pub fn advanceBy(self: *Self, n: usize) ?void {
-            self.n = math.sub(usize, self.n, n) catch {
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            if (n > self.n) {
                 self.n = 0;
-                return null;
-            };
-            self.iter.advanceBy(n) orelse return null;
+                return n - self.n;
+            }
+            self.n -= n;
+            return self.iter.advanceBy(n);
         }
     };
 }
@@ -212,7 +214,7 @@ pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
             const hint = self.iter.sizeHint();
             const other = self.other.sizeHint();
 
-            const lower = math.add(usize, hint.@"0", other.@"0") catch std.math.maxInt(usize);
+            const lower = math.add(usize, hint.@"0", other.@"0") catch math.maxInt(usize);
 
             const upper =
                 if (hint.@"1" == null or other.@"1" == null)
@@ -325,7 +327,9 @@ pub fn Cycle(comptime Wrapped: type) type {
             return .{ lower, null };
         }
 
-        pub fn advancedBy(_: *Self, _: usize) ?void {}
+        pub fn advancedBy(_: *Self, _: usize) usize {
+            return 0;
+        }
     };
 }
 
@@ -400,8 +404,8 @@ pub fn SkipEvery(comptime Wrapped: type) type {
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             var lower, var upper = self.iter.sizeHint();
 
-            if (lower != std.math.maxInt(usize)) {
-                lower = std.math.divCeil(
+            if (lower != math.maxInt(usize)) {
+                lower = math.divCeil(
                     usize,
                     lower,
                     self.interval,
@@ -409,7 +413,7 @@ pub fn SkipEvery(comptime Wrapped: type) type {
             }
 
             if (upper) |u|
-                upper = std.math.divCeil(
+                upper = math.divCeil(
                     usize,
                     u,
                     self.interval,
@@ -432,7 +436,7 @@ pub fn StepBy(comptime Wrapped: type) type {
         fn originalStep(self: Self) usize {
             return self.step_minus_one + 1;
         }
-        
+
         pub fn next(self: *Self) ?Item {
             const ret = self.iter.next();
             if (self.step_minus_one >= 1)
@@ -443,14 +447,14 @@ pub fn StepBy(comptime Wrapped: type) type {
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             var lower, var upper = self.iter.sizeHint();
 
-            lower = std.math.divTrunc(
+            lower = math.divTrunc(
                 usize,
                 lower,
                 self.originalStep(),
             ) catch unreachable;
 
             if (upper) |x|
-                upper = std.math.divTrunc(
+                upper = math.divTrunc(
                     usize,
                     x,
                     self.originalStep(),

@@ -23,16 +23,17 @@ const MyIterator = struct {
         return ret;
     }
 
-    pub fn advanceBy(self: *Self, n: usize) ?void {
+    pub fn advanceBy(self: *Self, n: usize) usize {
         const result = self.curr + n;
-        if (result >= self.buffer.len) return null;
         self.curr = result;
+        if (result > self.buffer.len) return result - self.buffer.len;
+        return 0;
     }
 
     pub fn nth(self: *Self, n: usize) ?Item {
         const result = self.curr + n;
-        if (result >= self.buffer.len) return null;
         self.curr = result + 1;
+        if (result >= self.buffer.len) return null;
         return self.buffer[result];
     }
 
@@ -53,6 +54,18 @@ const MyIterator = struct {
 };
 
 // TODO: complete test
+test "Iter.advanceBy" {
+    const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter();
+
+    const remain = x.advanceBy(3);
+
+    try expectEqual(0, remain);
+    try expectEqual('z', x.next());
+    try expectEqual(1, x.advanceBy(1));
+}
+
 test "Iter.nth" {
     const my_iterator = MyIterator{};
 
@@ -212,13 +225,13 @@ test "Iter.enumerate" {
         x.sizeHint(),
     );
 
-    try expectEqual({}, x.advanceBy(1));
+    try expectEqual(0, x.advanceBy(1));
 
     for (1..my_iterator.buffer.len) |i| {
         try expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
     }
 
-    try expectEqual(null, x.advanceBy(1));
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
 }
 
@@ -317,11 +330,11 @@ test "Iter.take" {
         x.sizeHint(),
     );
 
-    try expectEqual({}, x.advanceBy(1));
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual('x', x.next());
 
     try expectEqual(null, x.next());
-    try expectEqual(null, x.advanceBy(1));
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "Iter.takeWhile" {
@@ -518,14 +531,12 @@ test "Iter.stepBy" {
 //
 // tests for initializers
 //
-fn returnOne() u32 {
-    return 1;
-}
-
 test "reiter.empty" {
     var x = reiter.empty(u32);
 
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "reiter.once" {
@@ -534,6 +545,13 @@ test "reiter.once" {
 
         try expectEqual(1, x.next());
         try expectEqual(null, x.next());
+    }
+    {
+        var x = reiter.once(u32, 1);
+
+        try expectEqual(0, x.advanceBy(1));
+        try expectEqual(null, x.next());
+        try expectEqual(1, x.advanceBy(1));
     }
     {
         var x = reiter.once(u32, 43);
@@ -560,6 +578,17 @@ test "reiter.lazyOnce" {
     {
         var x = reiter.lazyOnce(u32, struct {
             fn call() u32 {
+                return 1;
+            }
+        }.call);
+
+        try expectEqual(0, x.advanceBy(1));
+        try expectEqual(null, x.next());
+        try expectEqual(1, x.advanceBy(1));
+    }
+    {
+        var x = reiter.lazyOnce(u32, struct {
+            fn call() u32 {
                 return 43;
             }
         }.call);
@@ -579,31 +608,43 @@ test "reiter.repeat" {
         try expectEqual(1, x.next());
     }
 
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual(math.maxInt(usize), x.count());
+    try expectEqual(0, x.advanceBy(1));
 }
 
 test "reiter.repeatN" {
     const n = 10;
     var x = reiter.repeatN(u32, 1, n);
 
-    try expectEqual({}, x.advanceBy(1));
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual(1, x.nth(1));
 
     for (0..n - 3) |_| {
         try expectEqual(1, x.next());
     }
 
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "reiter.lazyRepeat" {
-    var x = reiter.lazyRepeat(u32, returnOne);
+    var x = reiter.lazyRepeat(u32, struct {
+        fn call() u32 {
+            return 1;
+        }
+    }.call);
+
+    try expectEqual(0, x.advanceBy(1));
 
     for (0..1_000_000) |_| {
         try expectEqual(1, x.next());
     }
 
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual(math.maxInt(usize), x.count());
+    try expectEqual(0, x.advanceBy(1));
 }
 
 test "reiter.fromSlice" {
@@ -611,14 +652,16 @@ test "reiter.fromSlice" {
 
     var x = reiter.fromSlice(u32, &slice);
 
-    try expectEqual({}, x.advanceBy(2));
+    try expectEqual(0, x.advanceBy(2));
     try expectEqual(13, x.nth(1));
 
     for (4..slice.len) |i| {
         try expectEqual(slice[i], x.next());
     }
 
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "reiter.fromRange" {
@@ -627,14 +670,16 @@ test "reiter.fromRange" {
 
     var x = reiter.fromRange(usize, from, to);
 
-    try expectEqual({}, x.advanceBy(2));
+    try expectEqual(0, x.advanceBy(2));
     try expectEqual(3, x.nth(1));
 
     for (from + 4..to) |i| {
         try expectEqual(i, x.next());
     }
 
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "reiter.fromRangeStep" {
@@ -645,7 +690,7 @@ test "reiter.fromRangeStep" {
 
         var x = reiter.fromRangeStep(usize, from, to, step);
 
-        try expectEqual({}, x.advanceBy(2));
+        try expectEqual(0, x.advanceBy(2));
         try expectEqual(6, x.nth(1));
 
         var i: usize = from + 8;
@@ -662,7 +707,7 @@ test "reiter.fromRangeStep" {
 
         var x = reiter.fromRangeStep(isize, from, to, step);
 
-        try expectEqual({}, x.advanceBy(2));
+        try expectEqual(0, x.advanceBy(2));
         try expectEqual(14, x.nth(1));
 
         var i: isize = from - 8;

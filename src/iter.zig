@@ -80,15 +80,18 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// __[ Experimental ] [ Overridable ]__
         ///
-        /// Advances the iterator by `n`.
+        /// Advances the iterator by `n`. If the iterator is consumed before `n` 
+        /// is consumed, the amount that was not processed is returned. 
         ///
         /// Override to make optimizations but avoid using.
-        pub fn advanceBy(self: *Self, n: usize) ?void {
+        pub fn advanceBy(self: *Self, n: usize) usize {
             if (meta.hasMethod(Wrapped, "advanceBy"))
                 return self.wrapped.advanceBy(n);
 
-            for (0..n) |_|
-                _ = self.next() orelse return null;
+            for (0..n) |i|
+                _ = self.next() orelse return n - i;
+
+            return 0;
         }
 
         /// __[ Overridable ]__
@@ -98,7 +101,8 @@ pub fn Iter(comptime Wrapped: type) type {
             if (meta.hasMethod(Wrapped, "nth"))
                 return self.wrapped.nth(n);
 
-            self.advanceBy(n) orelse return null;
+            const remain = self.advanceBy(n);
+            if (remain > 0) return null;
             return self.next();
         }
 
