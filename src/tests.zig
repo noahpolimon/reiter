@@ -25,8 +25,11 @@ const MyIterator = struct {
 
     pub fn advanceBy(self: *Self, n: usize) usize {
         const result = self.curr + n;
+        if (result > self.buffer.len) {
+            self.curr = self.buffer.len;
+            return result - self.buffer.len;
+        }
         self.curr = result;
-        if (result > self.buffer.len) return result - self.buffer.len;
         return 0;
     }
 
@@ -63,6 +66,7 @@ test "Iter.advanceBy" {
 
     try expectEqual(0, remain);
     try expectEqual('z', x.next());
+    try expectEqual(null, x.next());
     try expectEqual(1, x.advanceBy(1));
 }
 
@@ -360,24 +364,39 @@ test "Iter.takeWhile" {
 test "Iter.chain" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().chain(my_iterator.iter());
+    {
+        var x = my_iterator.iter().chain(my_iterator.iter());
 
-    try expectEqual(
-        .{ my_iterator.buffer.len * 2, my_iterator.buffer.len * 2 },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len * 2, my_iterator.buffer.len * 2 },
+            x.sizeHint(),
+        );
 
-    try expectEqual('w', x.next());
-    try expectEqual('x', x.next());
-    try expectEqual('y', x.next());
-    try expectEqual('z', x.next());
+        try expectEqual('w', x.next());
+        try expectEqual('x', x.next());
+        try expectEqual('y', x.next());
+        try expectEqual('z', x.next());
 
-    try expectEqual('w', x.next());
-    try expectEqual('x', x.next());
-    try expectEqual('y', x.next());
-    try expectEqual('z', x.next());
+        try expectEqual('w', x.next());
+        try expectEqual('x', x.next());
+        try expectEqual('y', x.next());
+        try expectEqual('z', x.next());
 
-    try expectEqual(null, x.next());
+        try expectEqual(null, x.next());
+    }
+    {
+        var x = my_iterator.iter().chain(my_iterator.iter());
+
+        try expectEqual(0, x.advanceBy(5));
+
+        try expectEqual('x', x.next());
+        try expectEqual('y', x.next());
+        try expectEqual('z', x.next());
+
+        try expectEqual(1, x.advanceBy(1));
+        try expectEqual(null, x.next());
+        try expectEqual(1, x.advanceBy(1));
+    }
 }
 
 test "Iter.zip" {
