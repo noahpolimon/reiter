@@ -287,8 +287,21 @@ pub fn Peekable(comptime Wrapped: type) type {
                     self.peeked = null;
                     return p;
                 }
+                return null;
             }
             return self.iter.next();
+        }
+
+        pub fn peek(self: *Self) ?Item {
+            if (self.peeked) |peeked| {
+                if (peeked) |p| {
+                    return p;
+                }
+                return null;
+            }
+
+            self.peeked = self.iter.next();
+            return self.peeked orelse null;
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
@@ -302,17 +315,6 @@ pub fn Peekable(comptime Wrapped: type) type {
                 return .{ 0, 0 };
             }
             return self.iter.sizeHint();
-        }
-
-        pub fn peek(self: *Self) ?Item {
-            if (self.peeked) |peeked| {
-                if (peeked) |p| {
-                    return p;
-                }
-            }
-
-            self.peeked = self.iter.next();
-            return self.peeked orelse null;
         }
     };
 }

@@ -510,7 +510,10 @@ test "Iter.skip" {
     try expectEqual(0, x.advanceBy(1));
     try expectEqual('y', x.next());
     try expectEqual('z', x.next());
+
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "Iter.skipWhile" {
