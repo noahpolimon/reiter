@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Override `Iter.advanceBy` for `Chain`
 - Override `Iter.advanceBy` for `Zip`
 - `Iter.fallibleReduce` is now public, but experimental
+- Override `Iter.advanceBy` for `Skip`
 
 ### Fixed 
 

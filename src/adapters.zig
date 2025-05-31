@@ -373,6 +373,15 @@ pub fn Skip(comptime Wrapped: type) type {
 
             return .{ lower, upper };
         }
+
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            if (n > 0) {
+                const ret = self.iter.advanceBy(self.n + n);
+                self.n = 0;
+                return ret;
+            }
+            return 0;
+        }
     };
 }
 

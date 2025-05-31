@@ -507,7 +507,7 @@ test "Iter.skip" {
         x.sizeHint(),
     );
 
-    try expectEqual('x', x.next());
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual('y', x.next());
     try expectEqual('z', x.next());
     try expectEqual(null, x.next());
