@@ -80,8 +80,8 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// __[ Experimental ] [ Overridable ]__
         ///
-        /// Advances the iterator by `n`. If the iterator is consumed before `n` 
-        /// is consumed, the amount that was not processed is returned. 
+        /// Advances the iterator by `n`. If the iterator is consumed before `n`
+        /// is consumed, the amount that was not processed is returned.
         ///
         /// Override to make optimizations but avoid using.
         pub fn advanceBy(self: *Self, n: usize) usize {
@@ -178,7 +178,7 @@ pub fn Iter(comptime Wrapped: type) type {
             return x;
         }
 
-        /// Fallible version of `.fold()`. Both `f` and the method returns `anyerror!U`
+        /// Fallible version of `.fold()`. Both `f` and the method returns `anyerror!R`
         pub fn fallibleFold(self: *Self, comptime R: type, acc: R, f: *const fn (R, Item) anyerror!R) !R {
             var x = acc;
             while (self.next()) |item| {
@@ -198,8 +198,10 @@ pub fn Iter(comptime Wrapped: type) type {
             return acc;
         }
 
-        /// Fallible version of `.reduce()`. Both `f` and the method returns `anyerror!?Item`
-        fn fallibleReduce(self: *Self, f: *const fn (Item, Item) anyerror!Item) !?Item {
+        /// [ Experimental ]
+        ///
+        /// Fallible version of `.reduce()`. `f` returns `anyerror!Item` while the method returns `!?Item`.
+        pub fn fallibleReduce(self: *Self, f: *const fn (Item, Item) anyerror!Item) !?Item {
             var acc = self.next() orelse return null;
             while (self.next()) |item| {
                 acc = try f(acc, item);

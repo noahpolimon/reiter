@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `Iter.advanceBy` return a `usize` representing how much the iterator was not advanced if it is consumed.
 - Override `Iter.advanceBy` for `Chain`
 - Override `Iter.advanceBy` for `Zip`
+- `Iter.fallibleReduce` is now public, but experimental
 
 ### Fixed 
 

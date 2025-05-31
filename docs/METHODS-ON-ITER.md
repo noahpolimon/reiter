@@ -4,7 +4,7 @@
 - This is the main method that pretty much every variation/wrapper of `Iter` uses in this library. It yields the next element from the iterator.
 
 `.sizeHint()` (experimental)
-- Returns a tuple containing a lower bound and upper bound of the length of the remaining items in the iterator. A lower bound of value `std.math.maxInt(usize)` or/and an upper bound of value `null` represent an unknown or infinite length.  
+- Returns a tuple containing a lower bound and upper bound of the length of the remaining items in the iterator. A lower bound of value `@import("std").math.maxInt(usize)` or/and an upper bound of value `null` represent an unknown or infinite length.  
 
 `.nth(n)`
 - Advances the iterator by `n`, then returns the next element. Returns `null` if the iterator is consumed before `n` is reached.
@@ -31,11 +31,17 @@
 `.fold(type, acc, func)` 
 - Consumes the iterator and folds it into a single value of a specified type by accumulating a value computed by the function.
 
+`.fallibleFold(type, func)`
+- Fallible version of `.fold()`. Both `f` and the method returns `anyerror!R`
+
 `.find(func)`
 - Finds the first item for which the predicate is true.
 
 `.reduce(func)` 
 - Similar to the `.fold()` method but converges to a value the same type or `null` if the iterator is empty, thus not requiring an initial value.
+
+`.fallibleReduce(func)` (experimental)
+- Fallible version of `.reduce()`. `f` returns `anyerror!Item` while the method returns `!?Item`.
 
 `.last()` 
 - Consumes the iterator and returns the last value of the iterator. 
