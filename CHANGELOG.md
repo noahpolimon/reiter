@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Iter.fallibleReduce` is now public, but experimental
 - Override `Iter.advanceBy` for `Skip`
 - Return `null` in `.peek()` and `.next()` if `Peekable.peeked.?` is `null`
+- Override `Iter.advanceBy` for `Peekable`
 
 ### Fixed 
 

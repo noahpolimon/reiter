@@ -316,6 +316,18 @@ pub fn Peekable(comptime Wrapped: type) type {
             }
             return self.iter.sizeHint();
         }
+
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            if (n == 0) return 0;
+            if (self.peeked) |peeked| {
+                if (peeked) |_| {
+                    self.peeked = null;
+                    return self.iter.advanceBy(n - 1);
+                }
+                return n;
+            }
+            return self.iter.advanceBy(n);
+        }
     };
 }
 

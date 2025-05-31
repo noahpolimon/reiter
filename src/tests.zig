@@ -450,7 +450,7 @@ test "Iter.peekable" {
         x.sizeHint(),
     );
 
-    try expectEqual('w', x.next());
+    try expectEqual(0, x.advanceBy(1));
 
     try expectEqual(
         .{ my_iterator.buffer.len - 1, my_iterator.buffer.len - 1 },
@@ -466,8 +466,11 @@ test "Iter.peekable" {
     try expectEqual('z', x.peek());
     try expectEqual('z', x.next());
 
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.peek());
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 
     try expectEqual(
         .{ 0, 0 },
