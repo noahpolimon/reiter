@@ -225,21 +225,29 @@ test "Iter.find" {
 test "Iter.enumerate" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().enumerate();
+    {
+        var x = my_iterator.iter().enumerate();
 
-    try expectEqual(
-        .{ my_iterator.buffer.len, my_iterator.buffer.len },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len, my_iterator.buffer.len },
+            x.sizeHint(),
+        );
 
-    try expectEqual(0, x.advanceBy(1));
+        try expectEqual(0, x.advanceBy(1));
 
-    for (1..my_iterator.buffer.len) |i| {
-        try expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
+        for (1..my_iterator.buffer.len) |i| {
+            try expectEqual(.{ i, my_iterator.buffer[i] }, x.next());
+        }
+
+        try expectEqual(1, x.advanceBy(1));
+        try expectEqual(null, x.next());
+        try expectEqual(1, x.advanceBy(1));
     }
+    {
+        var x = my_iterator.iter().enumerate();
 
-    try expectEqual(1, x.advanceBy(1));
-    try expectEqual(null, x.next());
+        try expectEqual(4, x.count());
+    }
 }
 
 test "Iter.filter" {
@@ -284,22 +292,33 @@ test "Iter.filterMap" {
 test "Iter.map" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().map(bool, struct {
-        fn call(i: u8) bool {
-            return i == 'w';
-        }
-    }.call);
+    {
+        var x = my_iterator.iter().map(bool, struct {
+            fn call(i: u8) bool {
+                return i == 'w';
+            }
+        }.call);
 
-    try expectEqual(
-        .{ my_iterator.buffer.len, my_iterator.buffer.len },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len, my_iterator.buffer.len },
+            x.sizeHint(),
+        );
 
-    try expectEqual(true, x.next());
-    try expectEqual(false, x.next());
-    try expectEqual(false, x.next());
-    try expectEqual(false, x.next());
-    try expectEqual(null, x.next());
+        try expectEqual(true, x.next());
+        try expectEqual(false, x.next());
+        try expectEqual(false, x.next());
+        try expectEqual(false, x.next());
+        try expectEqual(null, x.next());
+    }
+    {
+        var x = my_iterator.iter().map(bool, struct {
+            fn call(i: u8) bool {
+                return i == 'w';
+            }
+        }.call);
+
+        try expectEqual(4, x.count());
+    }
 }
 
 test "Iter.mapWhile" {
@@ -400,6 +419,11 @@ test "Iter.chain" {
         try expectEqual(null, x.next());
         try expectEqual(1, x.advanceBy(1));
     }
+    {
+        var x = my_iterator.iter().chain(my_iterator.iter());
+
+        try expectEqual(8, x.count());
+    }
 }
 
 test "Iter.zip" {
@@ -435,69 +459,90 @@ test "Iter.zip" {
 test "Iter.peekable" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().peekable().peekable();
+    {
+        var x = my_iterator.iter().peekable().peekable();
 
-    try expectEqual(Iter(adapters.Peekable(MyIterator)), @TypeOf(x));
+        try expectEqual(Iter(adapters.Peekable(MyIterator)), @TypeOf(x));
 
-    try expectEqual(
-        .{ my_iterator.buffer.len, my_iterator.buffer.len },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len, my_iterator.buffer.len },
+            x.sizeHint(),
+        );
 
-    try expectEqual('w', x.peek());
-    try expectEqual('w', x.peek());
-    try expectEqual('w', x.peek());
+        try expectEqual('w', x.peek());
+        try expectEqual('w', x.peek());
+        try expectEqual('w', x.peek());
 
-    try expectEqual(
-        .{ my_iterator.buffer.len, my_iterator.buffer.len },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len, my_iterator.buffer.len },
+            x.sizeHint(),
+        );
 
-    try expectEqual(0, x.advanceBy(1));
+        try expectEqual(0, x.advanceBy(1));
 
-    try expectEqual(
-        .{ my_iterator.buffer.len - 1, my_iterator.buffer.len - 1 },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ my_iterator.buffer.len - 1, my_iterator.buffer.len - 1 },
+            x.sizeHint(),
+        );
 
-    try expectEqual('x', x.next());
+        try expectEqual('x', x.next());
 
-    try expectEqual('y', x.next());
+        try expectEqual('y', x.next());
 
-    try expectEqual('z', x.peek());
-    try expectEqual('z', x.peek());
-    try expectEqual('z', x.peek());
-    try expectEqual('z', x.next());
+        try expectEqual('z', x.peek());
+        try expectEqual('z', x.peek());
+        try expectEqual('z', x.peek());
+        try expectEqual('z', x.next());
 
-    try expectEqual(1, x.advanceBy(1));
-    try expectEqual(null, x.peek());
-    try expectEqual(1, x.advanceBy(1));
-    try expectEqual(null, x.next());
-    try expectEqual(1, x.advanceBy(1));
+        try expectEqual(1, x.advanceBy(1));
+        try expectEqual(null, x.peek());
+        try expectEqual(1, x.advanceBy(1));
+        try expectEqual(null, x.next());
+        try expectEqual(1, x.advanceBy(1));
 
-    try expectEqual(
-        .{ 0, 0 },
-        x.sizeHint(),
-    );
+        try expectEqual(
+            .{ 0, 0 },
+            x.sizeHint(),
+        );
+    }
+    {
+        var x = my_iterator.iter().peekable();
+
+        try expectEqual(4, x.count());
+    }
+    {
+        var x = my_iterator.iter().peekable();
+
+        try expectEqual('w', x.peek());
+        try expectEqual('w', x.peek());
+        try expectEqual('w', x.peek());
+        try expectEqual(4, x.count());
+    }
 }
 
 test "Iter.cycle" {
     const my_iterator = MyIterator{};
+    {
+        var x = my_iterator.iter().cycle().cycle();
 
-    var x = my_iterator.iter().cycle().cycle();
+        try expectEqual(Iter(adapters.Cycle(MyIterator)), @TypeOf(x));
 
-    try expectEqual(Iter(adapters.Cycle(MyIterator)), @TypeOf(x));
-
-    try expectEqual(
-        .{ std.math.maxInt(usize), null },
-        x.sizeHint(),
-    );
-
-    for (0..1_000_000) |i| {
         try expectEqual(
-            my_iterator.buffer[i % my_iterator.buffer.len],
-            x.next(),
+            .{ std.math.maxInt(usize), null },
+            x.sizeHint(),
         );
+
+        for (0..1_000_000) |i| {
+            try expectEqual(
+                my_iterator.buffer[i % my_iterator.buffer.len],
+                x.next(),
+            );
+        }
+    }
+    {
+        var x = my_iterator.iter().cycle();
+
+        try expectEqual(math.maxInt(usize), x.count());
     }
 }
 

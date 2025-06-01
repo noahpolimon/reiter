@@ -34,6 +34,10 @@ pub fn Enumerate(comptime Wrapped: type) type {
             self.index += n - i;
             return i;
         }
+
+        pub fn count(self: *Self) usize {
+            return self.iter.count();
+        }
     };
 }
 
@@ -92,14 +96,16 @@ pub fn Map(comptime Wrapped: type, comptime R: type) type {
         f: *const fn (Wrapped.Item) Item,
 
         pub fn next(self: *Self) ?Item {
-            return if (self.iter.next()) |item|
-                self.f(item)
-            else
-                null;
+            const item = self.iter.next() orelse return null;
+            return self.f(item);
         }
 
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             return self.iter.sizeHint();
+        }
+
+        pub fn count(self: *Self) usize {
+            return self.iter.count();
         }
     };
 }
@@ -228,6 +234,10 @@ pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
         pub fn advanceBy(self: *Self, n: usize) usize {
             return self.other.advanceBy(self.iter.advanceBy(n));
         }
+
+        pub fn count(self: *Self) usize {
+            return self.iter.count() + self.other.count();
+        }
     };
 }
 
@@ -328,6 +338,11 @@ pub fn Peekable(comptime Wrapped: type) type {
             }
             return self.iter.advanceBy(n);
         }
+
+        pub fn count(self: *Self) usize {
+            const peeked_n: usize = if (self.peeked) |_| 1 else 0;
+            return self.iter.count() + peeked_n;
+        }
     };
 }
 
@@ -355,6 +370,10 @@ pub fn Cycle(comptime Wrapped: type) type {
 
         pub fn advancedBy(_: *Self, _: usize) usize {
             return 0;
+        }
+
+        pub fn count(_: *Self) usize {
+            return math.maxInt(usize);
         }
     };
 }

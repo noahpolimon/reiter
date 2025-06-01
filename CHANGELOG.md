@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Override `Iter.advanceBy` for `Peekable`
 - Override `Iter.advanceBy` for `SkipEvery`
 - Override `Iter.advanceBy` for `StepBy`
+- Override `Iter.count` for `Enumerate`, `Map`, `Chain`, `Peekable` and `Cycle`
 
 ### Fixed 
 
