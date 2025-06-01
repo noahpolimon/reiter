@@ -35,8 +35,11 @@ const MyIterator = struct {
 
     pub fn nth(self: *Self, n: usize) ?Item {
         const result = self.curr + n;
+        if (result >= self.buffer.len) {
+            self.curr = self.buffer.len;
+            return null;
+        }
         self.curr = result + 1;
-        if (result >= self.buffer.len) return null;
         return self.buffer[result];
     }
 
@@ -548,9 +551,11 @@ test "Iter.skipEvery" {
 
     try expect(x.sizeHint().@"0" >= my_iterator.buffer.len / 2);
 
-    try expectEqual('x', x.next());
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual('z', x.next());
+    try expectEqual(1, x.advanceBy(1));
     try expectEqual(null, x.next());
+    try expectEqual(1, x.advanceBy(1));
 }
 
 test "Iter.stepBy" {

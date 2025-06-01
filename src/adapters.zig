@@ -389,12 +389,10 @@ pub fn Skip(comptime Wrapped: type) type {
         }
 
         pub fn advanceBy(self: *Self, n: usize) usize {
-            if (n > 0) {
-                const ret = self.iter.advanceBy(self.n + n);
-                self.n = 0;
-                return ret;
-            }
-            return 0;
+            if (n == 0) return 0;
+            const ret = self.iter.advanceBy(self.n + n);
+            self.n = 0;
+            return ret;
         }
     };
 }
@@ -439,6 +437,7 @@ pub fn SkipEvery(comptime Wrapped: type) type {
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             var lower, var upper = self.iter.sizeHint();
 
+            // TODO: more tests
             if (lower != math.maxInt(usize)) {
                 lower = math.divCeil(
                     usize,
@@ -455,6 +454,15 @@ pub fn SkipEvery(comptime Wrapped: type) type {
                 ) catch unreachable;
 
             return .{ lower, upper };
+        }
+
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            const step = self.interval + 1;
+            return math.divTrunc(
+                usize,
+                self.iter.advanceBy(n * step),
+                step,
+            ) catch unreachable;
         }
     };
 }
