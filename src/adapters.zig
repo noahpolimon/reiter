@@ -482,8 +482,7 @@ pub fn StepBy(comptime Wrapped: type) type {
 
         pub fn next(self: *Self) ?Item {
             const ret = self.iter.next();
-            if (self.step_minus_one >= 1)
-                _ = self.iter.nth(self.step_minus_one - 1);
+            _ = self.iter.advanceBy(self.step_minus_one);
             return ret;
         }
 
@@ -504,6 +503,14 @@ pub fn StepBy(comptime Wrapped: type) type {
                 ) catch unreachable;
 
             return .{ lower, upper };
+        }
+
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            return math.divTrunc(
+                usize,
+                self.iter.advanceBy(self.originalStep() * n),
+                self.originalStep(),
+            ) catch unreachable;
         }
     };
 }

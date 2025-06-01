@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return `null` in `.peek()` and `.next()` if `Peekable.peeked.?` is `null`
 - Override `Iter.advanceBy` for `Peekable`
 - Override `Iter.advanceBy` for `SkipEvery`
+- Override `Iter.advanceBy` for `StepBy`
 
 ### Fixed 
 

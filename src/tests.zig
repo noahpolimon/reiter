@@ -565,9 +565,11 @@ test "Iter.stepBy" {
 
     try expectEqual(Iter(adapters.StepBy(MyIterator)), @TypeOf(x));
 
-    try expectEqual('w', x.next());
+    try expectEqual(0, x.advanceBy(1));
     try expectEqual('y', x.next());
+    try expectEqual(2, x.advanceBy(2));
     try expectEqual(null, x.next());
+    try expectEqual(2, x.advanceBy(2));
 }
 
 //
