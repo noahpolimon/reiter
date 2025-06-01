@@ -4,7 +4,7 @@
 
 [![Zig Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Fnoahpolimon%2Freiter%2Fblob%2Fmain%2Fbuild.zig.zon&search=.minimum_zig_version%20%3D%20%5C%5C%22(%5Cd*%5C.%5Cd*%5C.%5Cd*)%5C%5C%22%2C&replace=v%241&style=flat&logo=zig&label=zig)](https://ziglang.org/documentation/master/)
 [![Release Version](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Fnoahpolimon%2Freiter%2Fblob%2Fmain%2Fbuild.zig.zon&search=.version%20%3D%20%5C%5C%22(%5Cd*%5C.%5Cd*%5C.%5Cd*)%5C%5C%22%2C&replace=v%241&style=flat&logo=semanticrelease&label=reiter)](https://github.com/noahpolimon/reiter/releases)
-
+[![GitHub License](https://img.shields.io/github/license/noahpolimon/reiter)](/LICENSE)
 </div>
 
 `reiter` enables Ziglings to effortlessly create their own iterators for their favourite types. Iterators can be made for native Zig types, std/external library types or any other types.
