@@ -466,7 +466,7 @@ pub fn Iter(comptime Wrapped: type) type {
         ///
         /// Panics if `n` is zero.
         pub fn stepBy(self: Self, n: usize) CanonicalStepBy {
-            std.debug.assert(n != 0);
+            if (n == 0) @panic("n must not be equal to 0");
             return .{
                 .wrapped = switch (CanonicalStepBy) {
                     Self => .{

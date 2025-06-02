@@ -203,7 +203,11 @@ pub fn TakeWhile(comptime Wrapped: type) type {
 }
 
 pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
-    std.debug.assert(Wrapped.Item == Other.Item);
+    if (comptime Wrapped.Item != Other.Item)
+        std.debug.panic(
+            "expected equal Item type: Wrapped.Item is `{}`, while Other.Item is `{}`",
+            .{ Wrapped.Item, Other.Item },
+        );
 
     return struct {
         const Self = @This();

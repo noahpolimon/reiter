@@ -345,11 +345,10 @@ pub fn fromRange(comptime T: type, start: T, end: T) Iter(FromRange(T)) {
 
 /// Creates an iterator from an integer range with an inclusive `start`, exclusive `end` and non-zero `step`.
 ///
-/// Panics if the range is not finite or `step` is zero.
+/// Panics if `step` is zero.
 pub fn fromRangeStep(comptime T: type, start: T, end: T, step: T) Iter(FromRange(T)) {
-    std.debug.assert(step != 0);
-    // ensure range is finite
-    std.debug.assert(if (step > 0) start < end else start > end);
+    if (step == 0)
+        @panic("step must not be equal to 0");
 
     return .{
         .wrapped = .{
