@@ -224,13 +224,21 @@ pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
             const hint = self.iter.sizeHint();
             const other = self.other.sizeHint();
 
-            const lower = math.add(usize, hint.@"0", other.@"0") catch math.maxInt(usize);
+            const lower = math_extra.saturatingAdd(
+                usize,
+                hint.@"0",
+                other.@"0",
+            );
 
             const upper =
                 if (hint.@"1" == null or other.@"1" == null)
                     null
                 else
-                    math.add(usize, hint.@"1".?, other.@"1".?) catch math.maxInt(usize);
+                    math_extra.saturatingAdd(
+                        usize,
+                        hint.@"1".?,
+                        other.@"1".?,
+                    );
 
             return .{ lower, upper };
         }
@@ -240,7 +248,11 @@ pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
         }
 
         pub fn count(self: *Self) usize {
-            return self.iter.count() + self.other.count();
+            return math_extra.saturatingAdd(
+                usize,
+                self.iter.count(),
+                self.other.count(),
+            );
         }
     };
 }
