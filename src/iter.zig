@@ -387,9 +387,7 @@ pub fn Iter(comptime Wrapped: type) type {
                 else => .{
                     .wrapped = .{
                         .orig = self,
-                        .iter = .{
-                            .wrapped = self.wrapped,
-                        },
+                        .iter = self,
                     },
                 },
             };
