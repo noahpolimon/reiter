@@ -69,7 +69,7 @@ pub fn Iter(comptime Wrapped: type) type {
         /// This method is only callable when the iterator is peekable.
         /// See `Iter.peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (markers.isMarked(Wrapped, markers.IsPeekable))
+            if (markers.isMarked(Wrapped, "peekable"))
                 return self.wrapped.peek();
 
             if (meta.hasMethod(Wrapped, "peek"))
@@ -293,7 +293,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalTake =
-            if (markers.isMarked(Wrapped, markers.IsTake))
+            if (markers.isMarked(Wrapped, "take"))
                 Self
             else
                 Iter(Take(Wrapped));
@@ -353,7 +353,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalPeekable =
-            if (markers.isMarked(Wrapped, markers.IsPeekable))
+            if (markers.isMarked(Wrapped, "peekable"))
                 Self
             else
                 Iter(Peekable(Wrapped));
@@ -372,7 +372,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalCycle =
-            if (markers.isMarked(Wrapped, markers.IsCycle))
+            if (markers.isMarked(Wrapped, "cycle"))
                 Self
             else
                 Iter(Cycle(Wrapped));
@@ -394,7 +394,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalSkip =
-            if (markers.isMarked(Wrapped, markers.IsSkip))
+            if (markers.isMarked(Wrapped, "skip"))
                 Self
             else
                 Iter(Skip(Wrapped));
@@ -429,7 +429,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalSkipEvery =
-            if (markers.isMarked(Wrapped, markers.IsSkipEvery))
+            if (markers.isMarked(Wrapped, "skip_every"))
                 Self
             else
                 Iter(SkipEvery(Wrapped));
@@ -454,7 +454,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalStepBy =
-            if (markers.isMarked(Wrapped, markers.IsStepBy))
+            if (markers.isMarked(Wrapped, "step_by"))
                 Self
             else
                 Iter(StepBy(Wrapped));

@@ -4,7 +4,7 @@ const math = std.math;
 const iter = @import("iter.zig");
 const Iter = iter.Iter;
 
-const markers = @import("markers.zig");
+const Marker = @import("markers.zig").Marker;
 const math_extra = @import("math_extra.zig");
 
 pub fn Enumerate(comptime Wrapped: type) type {
@@ -143,7 +143,7 @@ pub fn Take(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         n: usize,
-        comptime _: markers.IsTake = .{},
+        comptime _: Marker("take") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.n == 0) return null;
@@ -289,7 +289,7 @@ pub fn Peekable(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         peeked: ??Item = null,
-        comptime _: markers.IsPeekable = .{},
+        comptime _: Marker("peekable") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.peeked) |peeked| {
@@ -353,7 +353,7 @@ pub fn Cycle(comptime Wrapped: type) type {
 
         orig: Iter(Wrapped),
         iter: Iter(Wrapped),
-        comptime _: markers.IsCycle = .{},
+        comptime _: Marker("cycle") = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.orig.next() orelse {
@@ -385,7 +385,7 @@ pub fn Skip(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         n: usize,
-        comptime _: markers.IsSkip = .{},
+        comptime _: Marker("skip") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.n > 0) {
@@ -447,7 +447,7 @@ pub fn SkipEvery(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         interval: usize,
-        comptime _: markers.IsSkipEvery = .{},
+        comptime _: Marker("skip_every") = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.iter.nth(self.interval);
@@ -493,7 +493,7 @@ pub fn StepBy(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         step_minus_one: usize,
-        comptime _: markers.IsStepBy = .{},
+        comptime _: Marker("step_by") = .{},
 
         fn originalStep(self: Self) usize {
             return self.step_minus_one + 1;

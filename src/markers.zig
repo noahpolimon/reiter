@@ -1,21 +1,13 @@
 const std = @import("std");
 const meta = std.meta;
 
-pub const IsPeekable = struct {};
+pub fn Marker(comptime _: []const u8) type {
+    return struct {};
+}
 
-pub const IsTake = struct {};
-
-pub const IsCycle = struct {};
-
-pub const IsSkip = struct {};
-
-pub const IsSkipEvery = struct {};
-
-pub const IsStepBy = struct {};
-
-pub inline fn isMarked(comptime T: type, comptime MarkerT: type) bool {
+pub inline fn isMarked(comptime T: type, comptime name: []const u8) bool {
     inline for (meta.fields(T)) |field| {
-        if (field.type == MarkerT) return true;
+        if (field.type == Marker(name)) return true;
     }
     return false;
 }
