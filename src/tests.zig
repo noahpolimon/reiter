@@ -4,7 +4,6 @@ const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
 const reiter = @import("root.zig");
-const adapters = @import("adapters.zig");
 const Iter = reiter.Iter;
 
 const MyIterator = struct {
@@ -349,7 +348,7 @@ test "Iter.take" {
 
     var x = my_iterator.iter().take(2).take(5);
 
-    try expectEqual(Iter(adapters.Take(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(@import("adapters/take.zig").Take(MyIterator)), @TypeOf(x));
 
     try expectEqual(
         .{ 2, 2 },
@@ -462,7 +461,7 @@ test "Iter.peekable" {
     {
         var x = my_iterator.iter().peekable().peekable();
 
-        try expectEqual(Iter(adapters.Peekable(MyIterator)), @TypeOf(x));
+        try expectEqual(Iter(@import("adapters/peekable.zig").Peekable(MyIterator)), @TypeOf(x));
 
         try expectEqual(
             .{ my_iterator.buffer.len, my_iterator.buffer.len },
@@ -525,7 +524,7 @@ test "Iter.cycle" {
     {
         var x = my_iterator.iter().cycle().cycle();
 
-        try expectEqual(Iter(adapters.Cycle(MyIterator)), @TypeOf(x));
+        try expectEqual(Iter(@import("adapters/cycle.zig").Cycle(MyIterator)), @TypeOf(x));
 
         try expectEqual(
             .{ std.math.maxInt(usize), null },
@@ -551,7 +550,7 @@ test "Iter.skip" {
 
     var x = my_iterator.iter().skip(1).skip(0);
 
-    try expectEqual(Iter(adapters.Skip(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(@import("adapters/skip.zig").Skip(MyIterator)), @TypeOf(x));
 
     try expectEqual(
         .{ my_iterator.buffer.len - 1, my_iterator.buffer.len - 1 },
@@ -592,7 +591,7 @@ test "Iter.skipEvery" {
 
     var x = my_iterator.iter().skipEvery(1).skipEvery(0);
 
-    try expectEqual(Iter(adapters.SkipEvery(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(@import("adapters/skip_every.zig").SkipEvery(MyIterator)), @TypeOf(x));
 
     try expect(x.sizeHint().@"0" >= my_iterator.buffer.len / 2);
 
@@ -608,7 +607,7 @@ test "Iter.stepBy" {
 
     var x = my_iterator.iter().stepBy(2).stepBy(1);
 
-    try expectEqual(Iter(adapters.StepBy(MyIterator)), @TypeOf(x));
+    try expectEqual(Iter(@import("adapters/step_by.zig").StepBy(MyIterator)), @TypeOf(x));
 
     try expectEqual(0, x.advanceBy(1));
     try expectEqual('y', x.next());

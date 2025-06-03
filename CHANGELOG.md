@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Struct marking now uses a generic type `Marker`
 - Allow infinite range in `fromRangeStep`
 - Panic instead of asserting where applicable
+- Restructured code
 
 ### Fixed
 
