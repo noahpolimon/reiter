@@ -495,7 +495,5 @@ inline fn assertIsIter(comptime T: type) void {
         @compileError(@typeName(T) ++ " must have a public `next` method");
 
     if (@TypeOf(T.next) != fn (*T) ?T.Item)
-        @compileError(
-            "`next` method does not conform to the required signature: fn (*" ++ @typeName(T) ++ ") ?" ++ @typeName(T.Item),
-        );
+        @compileError("`next` method does not conform to the required signature: fn (*" ++ @typeName(T) ++ ") ?" ++ @typeName(T.Item));
 }

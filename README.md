@@ -37,12 +37,12 @@ Then, add it in your `build.zig` file to the root module of your executable or l
 +     .optimize = optimize,
 + }).module("reiter");
 
++ exe_mod.addImport("reiter", reiter);
+
 const exe = b.addExecutable(.{
     .name = "my_project",
     .root_module = exe_mod,
 });
-
-+ exe.root_module.addImport("reiter", reiter);
 
 b.installArtifact(exe);
 // code
@@ -58,11 +58,10 @@ Voila! You may now import and use the reiter library.
 
 ## "Implementing" Iter
 
-`Iter` is a generic iterator that yields values from some kind of collection, range, indexable, etc... lazily. Iterators should have the following when "implementing" `Iter`:
+`Iter` is a generic iterator that yields values from some kind of collection, range, indexable, etc... lazily. Iterators *should* have the following when "implementing" `Iter`:
 
 - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields. 
 - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.  
-- `fn <method_name>(@This()) Iter(@This())` - A public method that returns the wrapped iterator. 
 
 A simple implementation would look like the example below:
 
@@ -130,13 +129,11 @@ struct {
 Zig does not (and i think most likely will not) support closures. In the case it does in the future, this library will 
 be updated to align with it.
 
+See [here](/docs/METHODS-ON-ITER.md) to know which methods can be used on iterators.
+
 ## Examples
 
 More examples are found in the `examples` directory. 
-
-## Methods on Iter
-
-See [here](/docs/METHODS-ON-ITER.md) to know which methods can be used on iterators.
 
 ## Initializers
 
@@ -161,11 +158,11 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-`lazyOnce(type, func)`
+`onceWith(type, func)`
 - Creates an iterator that yields the return value of `func` once.
 
     ```zig
-    var i = reiter.lazyOnce(u32, struct {
+    var i = reiter.onceWith(u32, struct {
         fn call() u32 {
             return 50;
         }
@@ -200,11 +197,11 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-`lazyRepeat(type, item)`
-- Creates an iterator that yields the return value of `func` repeatedly.
+`repeatWith(type, func)`
+- Creates an iterator that yields the return value of `func` repeatedly. This is the equivalent of using `onceWith(type, func).cycle()`
 
     ```zig
-    var i = reiter.lazyRepeat(u32, struct {
+    var i = reiter.repeatWith(u32, struct {
         fn call() u32 {
             return 50;
         }
@@ -272,12 +269,13 @@ Initializers are pre-made functions that can be used to create iterators for a p
 
 ## Project Particulars
 
-* Not using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
+* Avoid using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
 * Avoid using `anytype` wherever possible unless: 
   1. The type would be long to type or not easy to find out if used as function parameter, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
   2. The type could really be of any type, e.g, struct fields.
 * Does not redundantly include "zig" in the name. (see [zig -o- 236fb91](http://github.com/ziglang/zig/commit/236fb915cc1c3b59b47e609125b680743c9c1ec0))
-
+* Will likely bump minimum zig version until a stable zig version is released (1.0)
+  
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

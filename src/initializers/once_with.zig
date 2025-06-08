@@ -1,6 +1,6 @@
 const Iter = @import("../iter.zig").Iter;
 
-fn LazyOnce(comptime T: type) type {
+fn OnceWith(comptime T: type) type {
     return struct {
         const Self = @This();
         pub const Item = T;
@@ -35,7 +35,7 @@ fn LazyOnce(comptime T: type) type {
 }
 
 /// Creates an iterator that yields the return value of `f` once.
-pub fn lazyOnce(comptime T: type, f: *const fn () T) Iter(LazyOnce(T)) {
+pub fn onceWith(comptime T: type, f: *const fn () T) Iter(OnceWith(T)) {
     return .{
         .wrapped = .{ .f = f },
     };

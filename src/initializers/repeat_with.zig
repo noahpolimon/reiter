@@ -3,7 +3,7 @@ const math = std.math;
 
 const Iter = @import("../iter.zig").Iter;
 
-fn LazyRepeat(comptime T: type) type {
+fn RepeatWith(comptime T: type) type {
     return struct {
         const Self = @This();
         pub const Item = T;
@@ -34,8 +34,8 @@ fn LazyRepeat(comptime T: type) type {
 
 /// Creates an iterator that yields the return value of `f` repeatedly.
 ///
-/// Equivalent of using `reiter.lazyOnce(T, f).cycle()`
-pub fn lazyRepeat(comptime T: type, f: *const fn () T) Iter(LazyRepeat(T)) {
+/// Equivalent of using `reiter.onceWith(T, f).cycle()`
+pub fn repeatWith(comptime T: type, f: *const fn () T) Iter(RepeatWith(T)) {
     return .{
         .wrapped = .{ .f = f },
     };
