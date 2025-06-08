@@ -17,20 +17,8 @@ fn RepeatWith(comptime T: type) type {
         pub fn sizeHint(_: Self) struct { usize, ?usize } {
             return .{ math.maxInt(usize), null };
         }
-
-        pub fn advanceBy(_: *Self, _: usize) usize {
-            return 0;
-        }
-
-        pub fn nth(self: *Self, _: usize) ?Item {
-            return self.f();
-        }
-
-        pub fn count(_: *Self) usize {
-            return math.maxInt(usize);
-        }
     };
-}
+}                                                                                                                                                                                    
 
 /// Creates an iterator that yields the return value of `f` repeatedly.
 ///

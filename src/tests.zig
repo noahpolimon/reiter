@@ -652,9 +652,9 @@ test "reiter.once" {
     }
 }
 
-test "reiter.lazyOnce" {
+test "reiter.onceWith" {
     {
-        var x = reiter.lazyOnce(u32, struct {
+        var x = reiter.onceWith(u32, struct {
             fn call() u32 {
                 return 1;
             }
@@ -664,7 +664,7 @@ test "reiter.lazyOnce" {
         try expectEqual(null, x.next());
     }
     {
-        var x = reiter.lazyOnce(u32, struct {
+        var x = reiter.onceWith(u32, struct {
             fn call() u32 {
                 return 1;
             }
@@ -675,7 +675,7 @@ test "reiter.lazyOnce" {
         try expectEqual(1, x.advanceBy(1));
     }
     {
-        var x = reiter.lazyOnce(u32, struct {
+        var x = reiter.onceWith(u32, struct {
             fn call() u32 {
                 return 43;
             }
@@ -717,22 +717,16 @@ test "reiter.repeatN" {
     try expectEqual(1, x.advanceBy(1));
 }
 
-test "reiter.lazyRepeat" {
-    var x = reiter.lazyRepeat(u32, struct {
+test "reiter.repeatWith" {
+    var x = reiter.repeatWith(u32, struct {
         fn call() u32 {
             return 1;
         }
     }.call);
 
-    try expectEqual(0, x.advanceBy(1));
-
     for (0..1_000_000) |_| {
         try expectEqual(1, x.next());
     }
-
-    try expectEqual(0, x.advanceBy(1));
-    try expectEqual(math.maxInt(usize), x.count());
-    try expectEqual(0, x.advanceBy(1));
 }
 
 test "reiter.fromSlice" {
