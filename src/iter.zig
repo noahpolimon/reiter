@@ -26,7 +26,7 @@ const math_extra = @import("math_extra.zig");
 /// - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields.
 /// - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.
 pub fn Iter(comptime Wrapped: type) type {
-    comptime assertIsIter(Wrapped);
+    comptime try assertIsIter(Wrapped);
     return struct {
         const Self = @This();
 
@@ -328,7 +328,7 @@ pub fn Iter(comptime Wrapped: type) type {
         ///
         /// The two iterators should yield the same value type.
         pub fn chain(self: Self, other: anytype) Iter(Chain(Wrapped, @TypeOf(other.wrapped))) {
-            comptime assertIsIter(@TypeOf(other));
+            comptime try assertIsIter(@TypeOf(other));
 
             return .{
                 .wrapped = .{
@@ -340,7 +340,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that yields paired values in the form of `struct { Item, Other.Item }` until 1 of the iterators is consumed.
         pub fn zip(self: Self, other: anytype) Iter(Zip(Wrapped, @TypeOf(other.wrapped))) {
-            comptime assertIsIter(@TypeOf(other));
+            comptime try assertIsIter(@TypeOf(other));
 
             return .{
                 .wrapped = .{
@@ -434,7 +434,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that skips `n` elements before yielding each element.
         ///
-        /// Successive calls on the same iterator, i.e `.skipEvery(interval).skipEvery(interval1)...skipEvery(intervalN)`, will not wrap itself.
+        /// Successive calls on the same iterator, i.e `.skipEvery(interval).skip(interval1)...skip(intervalN)`, will not wrap itself.
         /// The sum of `interval`s will be considered.
         pub fn skipEvery(self: Self, interval: usize) CanonicalSkipEvery {
             return .{
@@ -459,7 +459,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that skips `n - 1` elements after yielding each element.
         ///
-        /// Successive calls on the same iterator, i.e `.stepBy(n).stepBy(n1)...stepBy(nN)`, will not wrap itself.
+        /// Successive calls on the same iterator, i.e `.stepBy(n).skip(n1)...skip(nN)`, will not wrap itself.
         /// The sum of (`n - 1`)'s will be considered.
         ///
         /// Panics if `n` is zero.
@@ -481,18 +481,18 @@ pub fn Iter(comptime Wrapped: type) type {
     };
 }
 
-inline fn assertIsIter(comptime T: type) void {
+inline fn assertIsIter(comptime T: type) !void {
     // check for Item
     if (!@hasDecl(T, "Item"))
-        @compileError(@typeName(T) ++ " must have a public `Item` declaration");
+        return error.NoPubItemDecl;
 
     if (@TypeOf(T.Item) != type)
-        @compileError(@typeName(T) ++ " must be of type `type`");
+        return error.ItemDeclWrongType;
 
     // check for next()
     if (!meta.hasMethod(T, "next"))
-        @compileError(@typeName(T) ++ " must have a public `next` method");
+        return error.NoPubNextMethod;
 
     if (@TypeOf(T.next) != fn (*T) ?T.Item)
-        @compileError("`next` method does not conform to the required signature: fn (*" ++ @typeName(T) ++ ") ?" ++ @typeName(T.Item));
+        return error.NextMethodWrongSignature;
 }
