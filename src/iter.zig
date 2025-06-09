@@ -434,7 +434,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that skips `n` elements before yielding each element.
         ///
-        /// Successive calls on the same iterator, i.e `.skipEvery(interval).skip(interval1)...skip(intervalN)`, will not wrap itself.
+        /// Successive calls on the same iterator, i.e `.skipEvery(interval).skipEvery(interval1)...skipEvery(intervalN)`, will not wrap itself.
         /// The sum of `interval`s will be considered.
         pub fn skipEvery(self: Self, interval: usize) CanonicalSkipEvery {
             return .{
@@ -459,7 +459,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that skips `n - 1` elements after yielding each element.
         ///
-        /// Successive calls on the same iterator, i.e `.stepBy(n).skip(n1)...skip(nN)`, will not wrap itself.
+        /// Successive calls on the same iterator, i.e `.stepBy(n).stepBy(n1)...stepBy(nN)`, will not wrap itself.
         /// The sum of (`n - 1`)'s will be considered.
         ///
         /// Panics if `n` is zero.

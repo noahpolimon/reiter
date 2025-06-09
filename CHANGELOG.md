@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restructured code
 - Rename `lazyOnce()` and `lazyRepeat()` to `onceWith()` and `repeatWith()` respectively
 
-### Removed 
+### Removed
 
 - Remove incorrect overrides for `RepeatWith`
 - Remove incorrect overrides for `Cycle`
@@ -24,13 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Overflow error handling in `Chain`
+- Fix doc-comments in `Iter`
 
 ## [0.5.0] - 2025-06-02
 
 ### Added
 
 - Implement `Iter.any` and `Iter.all`
-- Doc comments 
+- Doc comments
 - Created [docs](docs) directory
 - Relative links in [CHANGELOG.md](CHANGELOG.md)
 
@@ -54,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Override `Iter.advanceBy` for `StepBy`
 - Override `Iter.count` for `Enumerate`, `Map`, `Chain`, `Peekable` and `Cycle`
 
-### Fixed 
+### Fixed
 
 - Changed type of `Peekable.peeked` field from `?Item` to `??Item` to fix incorrect size hint
 - Assertion for `fromRangeStep` finite range was incorrect as it could lead to an overflow error
@@ -83,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed tests names
 - Fixed some sizeHint() implementations in adapters
-- Fixed `reiter.recurse` example in README 
+- Fixed `reiter.recurse` example in README
 
 ## [0.3.0] - 2025-05-20
 
@@ -117,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed typo in README 
+- Fixed typo in README
 
 ## [0.1.1] - 2025-05-13
 
