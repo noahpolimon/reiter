@@ -15,7 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Panic instead of asserting where applicable
 - Restructured code
 - Rename `lazyOnce()` and `lazyRepeat()` to `onceWith()` and `repeatWith()` respectively
+
+### Removed 
+
 - Remove incorrect overrides for `RepeatWith`
+- Remove incorrect overrides for `Cycle`
 
 ### Fixed
 

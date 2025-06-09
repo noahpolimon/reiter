@@ -62,8 +62,7 @@ pub fn Peekable(comptime Wrapped: type) type {
         }
 
         pub fn count(self: *Self) usize {
-            const peeked_n: usize = if (self.peeked) |_| 1 else 0;
-            return self.iter.count() + peeked_n;
+            return self.iter.count() + @intFromBool(self.peeked != null);
         }
     };
 }

@@ -55,7 +55,6 @@ pub fn Iter(comptime Wrapped: type) type {
         /// The default implementation returns `.{ 0, null }` which is correct for any iterator
         ///
         /// This method will be mostly used to get a size that minimizes allocations for the upcoming `Iter.collect()`.
-        ///
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             if (meta.hasMethod(Wrapped, "sizeHint"))
                 return self.wrapped.sizeHint();

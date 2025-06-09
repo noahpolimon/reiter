@@ -513,9 +513,24 @@ test "Iter.peekable" {
         var x = my_iterator.iter().peekable();
 
         try expectEqual('w', x.peek());
-        try expectEqual('w', x.peek());
-        try expectEqual('w', x.peek());
         try expectEqual(4, x.count());
+    }
+    {
+        var x = my_iterator.iter().peekable();
+
+        try expectEqual('w', x.next());
+        try expectEqual('x', x.peek());
+        try expectEqual(3, x.count());
+    }
+
+    {
+                var x = my_iterator.iter().peekable();
+
+        try expectEqual('w', x.next());
+        try expectEqual('x', x.next());
+        try expectEqual('y', x.next());
+        try expectEqual('z', x.peek());
+        try expectEqual(1, x.count());
     }
 }
 
@@ -537,11 +552,6 @@ test "Iter.cycle" {
                 x.next(),
             );
         }
-    }
-    {
-        var x = my_iterator.iter().cycle();
-
-        try expectEqual(math.maxInt(usize), x.count());
     }
 }
 

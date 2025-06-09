@@ -25,13 +25,5 @@ pub fn Cycle(comptime Wrapped: type) type {
             lower = if (lower == 0) lower else math.maxInt(usize);
             return .{ lower, null };
         }
-
-        pub fn advancedBy(_: *Self, _: usize) usize {
-            return 0;
-        }
-
-        pub fn count(_: *Self) usize {
-            return math.maxInt(usize);
-        }
     };
 }
