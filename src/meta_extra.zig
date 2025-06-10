@@ -2,8 +2,10 @@ const std = @import("std");
 const meta = std.meta;
 const Iter = @import("iter.zig").Iter;
 
-pub fn Marker(comptime _: []const u8) type {
-    return struct {};
+pub fn Marker(comptime name: []const u8) type {
+    return struct {
+        comptime _: []const u8 = name,
+    };
 }
 
 pub inline fn isMarked(comptime T: type, comptime name: []const u8) bool {

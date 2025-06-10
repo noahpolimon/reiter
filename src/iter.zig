@@ -67,7 +67,7 @@ pub fn Iter(comptime Wrapped: type) type {
         /// This method is only callable when the iterator is peekable.
         /// See `Iter.peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (meta_extra.isMarked(Wrapped, "peekable"))
+            if (meta_extra.isMarked(Wrapped, "Peekable"))
                 return self.wrapped.peek();
 
             if (meta.hasMethod(Wrapped, "peek"))
@@ -291,7 +291,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalTake =
-            if (meta_extra.isMarked(Wrapped, "take"))
+            if (meta_extra.isMarked(Wrapped, "Take"))
                 Self
             else
                 Iter(Take(Wrapped));
@@ -351,7 +351,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalPeekable =
-            if (meta_extra.isMarked(Wrapped, "peekable"))
+            if (meta_extra.isMarked(Wrapped, "Peekable"))
                 Self
             else
                 Iter(Peekable(Wrapped));
@@ -370,7 +370,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalCycle =
-            if (meta_extra.isMarked(Wrapped, "cycle"))
+            if (meta_extra.isMarked(Wrapped, "Cycle"))
                 Self
             else
                 Iter(Cycle(Wrapped));
@@ -392,7 +392,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalSkip =
-            if (meta_extra.isMarked(Wrapped, "skip"))
+            if (meta_extra.isMarked(Wrapped, "Skip"))
                 Self
             else
                 Iter(Skip(Wrapped));
@@ -427,7 +427,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalSkipEvery =
-            if (meta_extra.isMarked(Wrapped, "skip_every"))
+            if (meta_extra.isMarked(Wrapped, "SkipEvery"))
                 Self
             else
                 Iter(SkipEvery(Wrapped));
@@ -452,7 +452,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalStepBy =
-            if (meta_extra.isMarked(Wrapped, "step_by"))
+            if (meta_extra.isMarked(Wrapped, "StepBy"))
                 Self
             else
                 Iter(StepBy(Wrapped));
