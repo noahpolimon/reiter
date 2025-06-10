@@ -2,7 +2,7 @@ const std = @import("std");
 const math = std.math;
 
 const Iter = @import("../iter.zig").Iter;
-const Marker = @import("../markers.zig").Marker;
+const Marker = @import("../meta_extra.zig").Marker;
 
 pub fn Peekable(comptime Wrapped: type) type {
     return struct {
@@ -11,7 +11,7 @@ pub fn Peekable(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         peeked: ??Item = null,
-        comptime _: Marker("peekable") = .{},
+        comptime _: Marker("Peekable") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.peeked) |peeked| {

@@ -2,7 +2,7 @@ const std = @import("std");
 const math = std.math;
 
 const Iter = @import("../iter.zig").Iter;
-const Marker = @import("../markers.zig").Marker;
+const Marker = @import("../meta_extra.zig").Marker;
 
 pub fn Cycle(comptime Wrapped: type) type {
     return struct {
@@ -11,7 +11,7 @@ pub fn Cycle(comptime Wrapped: type) type {
 
         orig: Iter(Wrapped),
         iter: Iter(Wrapped),
-        comptime _: Marker("cycle") = .{},
+        comptime _: Marker("Cycle") = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.orig.next() orelse {

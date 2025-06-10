@@ -1,4 +1,5 @@
 const Iter = @import("../iter.zig").Iter;
+const Marker = @import("../meta_extra.zig").Marker;
 
 const math_extra = @import("../math_extra.zig");
 
@@ -9,6 +10,7 @@ pub fn Zip(comptime Wrapped: type, comptime Other: type) type {
 
         iter: Iter(Wrapped),
         other: Iter(Other),
+        comptime _: Marker("Zip") = .{},
 
         pub fn next(self: *Self) ?Item {
             const x = self.iter.next() orelse return null;

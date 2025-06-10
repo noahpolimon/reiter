@@ -17,7 +17,7 @@ const SkipWhile = @import("adapters/skip_while.zig").SkipWhile;
 const SkipEvery = @import("adapters/skip_every.zig").SkipEvery;
 const StepBy = @import("adapters/step_by.zig").StepBy;
 
-const markers = @import("markers.zig");
+const meta_extra = @import("meta_extra.zig");
 const math_extra = @import("math_extra.zig");
 
 /// Generic iterator that provides various methods in addition to methods `Wrapped` should provide.
@@ -26,7 +26,7 @@ const math_extra = @import("math_extra.zig");
 /// - `Item` - The `Item` declaration __*should*__ be public and equal to the type of values the iterator yields.
 /// - `fn next(*@This()) ?Item` - The `next` method __*should*__ be public and have the exact same signature.
 pub fn Iter(comptime Wrapped: type) type {
-    comptime try assertIsIter(Wrapped);
+    comptime try meta_extra.expectImplIter(Wrapped);
     return struct {
         const Self = @This();
 
@@ -67,7 +67,7 @@ pub fn Iter(comptime Wrapped: type) type {
         /// This method is only callable when the iterator is peekable.
         /// See `Iter.peekable`.
         pub fn peek(self: *Self) ?Item {
-            if (markers.isMarked(Wrapped, "peekable"))
+            if (meta_extra.isMarked(Wrapped, "peekable"))
                 return self.wrapped.peek();
 
             if (meta.hasMethod(Wrapped, "peek"))
@@ -291,7 +291,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalTake =
-            if (markers.isMarked(Wrapped, "take"))
+            if (meta_extra.isMarked(Wrapped, "take"))
                 Self
             else
                 Iter(Take(Wrapped));
@@ -328,7 +328,7 @@ pub fn Iter(comptime Wrapped: type) type {
         ///
         /// The two iterators should yield the same value type.
         pub fn chain(self: Self, other: anytype) Iter(Chain(Wrapped, @TypeOf(other.wrapped))) {
-            comptime try assertIsIter(@TypeOf(other));
+            comptime try meta_extra.expectImplIter(@TypeOf(other));
 
             return .{
                 .wrapped = .{
@@ -340,7 +340,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that yields paired values in the form of `struct { Item, Other.Item }` until 1 of the iterators is consumed.
         pub fn zip(self: Self, other: anytype) Iter(Zip(Wrapped, @TypeOf(other.wrapped))) {
-            comptime try assertIsIter(@TypeOf(other));
+            comptime try meta_extra.expectImplIter(@TypeOf(other));
 
             return .{
                 .wrapped = .{
@@ -351,7 +351,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalPeekable =
-            if (markers.isMarked(Wrapped, "peekable"))
+            if (meta_extra.isMarked(Wrapped, "peekable"))
                 Self
             else
                 Iter(Peekable(Wrapped));
@@ -370,7 +370,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalCycle =
-            if (markers.isMarked(Wrapped, "cycle"))
+            if (meta_extra.isMarked(Wrapped, "cycle"))
                 Self
             else
                 Iter(Cycle(Wrapped));
@@ -392,7 +392,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalSkip =
-            if (markers.isMarked(Wrapped, "skip"))
+            if (meta_extra.isMarked(Wrapped, "skip"))
                 Self
             else
                 Iter(Skip(Wrapped));
@@ -427,7 +427,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalSkipEvery =
-            if (markers.isMarked(Wrapped, "skip_every"))
+            if (meta_extra.isMarked(Wrapped, "skip_every"))
                 Self
             else
                 Iter(SkipEvery(Wrapped));
@@ -452,7 +452,7 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         const CanonicalStepBy =
-            if (markers.isMarked(Wrapped, "step_by"))
+            if (meta_extra.isMarked(Wrapped, "step_by"))
                 Self
             else
                 Iter(StepBy(Wrapped));
@@ -479,20 +479,4 @@ pub fn Iter(comptime Wrapped: type) type {
             };
         }
     };
-}
-
-inline fn assertIsIter(comptime T: type) !void {
-    // check for Item
-    if (!@hasDecl(T, "Item"))
-        return error.NoPubItemDecl;
-
-    if (@TypeOf(T.Item) != type)
-        return error.ItemDeclWrongType;
-
-    // check for next()
-    if (!meta.hasMethod(T, "next"))
-        return error.NoPubNextMethod;
-
-    if (@TypeOf(T.next) != fn (*T) ?T.Item)
-        return error.NextMethodWrongSignature;
 }

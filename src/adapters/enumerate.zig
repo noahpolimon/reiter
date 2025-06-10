@@ -1,5 +1,7 @@
 const Iter = @import("../iter.zig").Iter;
 
+const Marker = @import("../meta_extra.zig").Marker;
+
 pub fn Enumerate(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
@@ -7,6 +9,7 @@ pub fn Enumerate(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         index: usize = 0,
+        comptime _: Marker("Enumerate") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.iter.next()) |item| {

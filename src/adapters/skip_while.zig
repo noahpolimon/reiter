@@ -1,4 +1,5 @@
 const Iter = @import("../iter.zig").Iter;
+const Marker = @import("../meta_extra.zig").Marker;
 
 pub fn SkipWhile(comptime Wrapped: type) type {
     return struct {
@@ -8,6 +9,7 @@ pub fn SkipWhile(comptime Wrapped: type) type {
         iter: Iter(Wrapped),
         flag: bool = false,
         predicate: *const fn (Item) bool,
+        comptime _: Marker("SkipWhile") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.flag) return null;

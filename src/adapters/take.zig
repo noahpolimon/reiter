@@ -1,5 +1,6 @@
 const Iter = @import("../iter.zig").Iter;
-const Marker = @import("../markers.zig").Marker;
+const Marker = @import("../meta_extra.zig").Marker;
+
 const math_extra = @import("../math_extra.zig");
 
 pub fn Take(comptime Wrapped: type) type {
@@ -9,7 +10,7 @@ pub fn Take(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         n: usize,
-        comptime _: Marker("take") = .{},
+        comptime _: Marker("Take") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.n == 0) return null;

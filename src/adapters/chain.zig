@@ -2,7 +2,7 @@ const std = @import("std");
 
 const Iter = @import("../iter.zig").Iter;
 
-const Marker = @import("../markers.zig").Marker;
+const Marker = @import("../meta_extra.zig").Marker;
 const math_extra = @import("../math_extra.zig");
 
 pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
@@ -18,6 +18,7 @@ pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
 
         iter: Iter(Wrapped),
         other: Iter(Other),
+        comptime _: Marker("Chain") = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.iter.next() orelse self.other.next();

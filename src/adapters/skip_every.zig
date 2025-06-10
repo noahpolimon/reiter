@@ -2,7 +2,7 @@ const std = @import("std");
 const math = std.math;
 
 const Iter = @import("../iter.zig").Iter;
-const Marker = @import("../markers.zig").Marker;
+const Marker = @import("../meta_extra.zig").Marker;
 
 pub fn SkipEvery(comptime Wrapped: type) type {
     return struct {
@@ -11,7 +11,7 @@ pub fn SkipEvery(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         interval: usize,
-        comptime _: Marker("skip_every") = .{},
+        comptime _: Marker("SkipEvery") = .{},
 
         pub fn next(self: *Self) ?Item {
             return self.iter.nth(self.interval);

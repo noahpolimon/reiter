@@ -1,5 +1,7 @@
 const Iter = @import("../iter.zig").Iter;
 
+const Marker = @import("../meta_extra.zig").Marker;
+
 pub fn TakeWhile(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
@@ -8,6 +10,7 @@ pub fn TakeWhile(comptime Wrapped: type) type {
         iter: Iter(Wrapped),
         flag: bool = false,
         predicate: *const fn (Item) bool,
+        comptime _: Marker("TakeWhile") = .{},
 
         pub fn next(self: *Self) ?Item {
             if (self.flag) return null;

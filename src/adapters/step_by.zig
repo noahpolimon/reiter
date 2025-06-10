@@ -2,7 +2,7 @@ const std = @import("std");
 const math = std.math;
 
 const Iter = @import("../iter.zig").Iter;
-const Marker = @import("../markers.zig").Marker;
+const Marker = @import("../meta_extra.zig").Marker;
 
 pub fn StepBy(comptime Wrapped: type) type {
     return struct {
@@ -11,7 +11,7 @@ pub fn StepBy(comptime Wrapped: type) type {
 
         iter: Iter(Wrapped),
         step_minus_one: usize,
-        comptime _: Marker("step_by") = .{},
+        comptime _: Marker("StepBy") = .{},
 
         fn originalStep(self: Self) usize {
             return self.step_minus_one + 1;

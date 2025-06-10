@@ -1,5 +1,7 @@
 const Iter = @import("../iter.zig").Iter;
 
+const Marker = @import("../meta_extra.zig").Marker;
+
 pub fn FilterMap(comptime Wrapped: type, comptime R: type) type {
     return struct {
         const Self = @This();
@@ -7,6 +9,7 @@ pub fn FilterMap(comptime Wrapped: type, comptime R: type) type {
 
         iter: Iter(Wrapped),
         f: *const fn (Wrapped.Item) ?Item,
+        comptime _: Marker("FilterMap") = .{},
 
         pub fn next(self: *Self) ?Item {
             while (self.iter.next()) |item| {
