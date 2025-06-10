@@ -1,6 +1,8 @@
 // re-exports
 pub const Iter = @import("iter.zig").Iter;
 
+pub const checkIterConstraints = @import("meta_extra.zig").checkIterConstraints;
+
 pub const empty = @import("initializers/empty.zig").empty;
 pub const once = @import("initializers/once.zig").once;
 pub const onceWith = @import("initializers/once_with.zig").onceWith;
