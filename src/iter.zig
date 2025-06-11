@@ -480,3 +480,14 @@ pub fn Iter(comptime Wrapped: type) type {
         }
     };
 }
+
+/// Checks if `I` comforms to `Iter(I.Wrapped)` and return as such.
+///
+/// This does not have any runtime effect.
+///
+/// Use this if you need code completion with an unknown `I.Wrapped`
+pub fn AsIter(comptime I: type) type {
+    comptime try meta_extra.expectImplIter(I);
+    if (!@hasField(I, "wrapped")) @compileError("");
+    return Iter(@FieldType(I, "wrapped"));
+}

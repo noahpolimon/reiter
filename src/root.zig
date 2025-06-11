@@ -1,5 +1,6 @@
 // re-exports
 pub const Iter = @import("iter.zig").Iter;
+pub const AsIter = @import("iter.zig").AsIter;
 
 pub const checkIterConstraints = @import("meta_extra.zig").checkIterConstraints;
 
