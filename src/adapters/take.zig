@@ -1,8 +1,6 @@
 const Iter = @import("../iter.zig").Iter;
 const Marker = @import("../meta_extra.zig").Marker;
 
-const math_extra = @import("../math_extra.zig");
-
 pub fn Take(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
@@ -26,7 +24,7 @@ pub fn Take(comptime Wrapped: type) type {
             if (self.n == 0) return .{ 0, 0 };
             var lower, var upper = self.iter.sizeHint();
 
-            lower = math_extra.min(usize, lower, self.n);
+            lower = @min(lower, self.n);
 
             if (upper) |u|
                 upper = if (u < self.n) u else self.n;

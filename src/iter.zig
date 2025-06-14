@@ -18,7 +18,6 @@ const SkipEvery = @import("adapters/skip_every.zig").SkipEvery;
 const StepBy = @import("adapters/step_by.zig").StepBy;
 
 const meta_extra = @import("meta_extra.zig");
-const math_extra = @import("math_extra.zig");
 
 /// Generic iterator that provides various methods in addition to methods `Wrapped` should provide.
 ///
@@ -305,7 +304,7 @@ pub fn Iter(comptime Wrapped: type) type {
                 .wrapped = switch (CanonicalTake) {
                     Self => .{
                         .iter = self.wrapped.iter,
-                        .n = math_extra.min(usize, self.wrapped.n, n),
+                        .n = @min(self.wrapped.n, n),
                     },
                     else => .{
                         .iter = self,

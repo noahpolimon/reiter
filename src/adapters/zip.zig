@@ -22,11 +22,11 @@ pub fn Zip(comptime Wrapped: type, comptime Other: type) type {
             const iter_lower, const iter_upper = self.iter.sizeHint();
             const other_lower, const other_upper = self.other.sizeHint();
 
-            const lower = math_extra.min(usize, iter_lower, other_lower);
+            const lower = @min(iter_lower, other_lower);
 
             const upper =
                 if (iter_upper != null and other_upper != null)
-                    math_extra.min(usize, iter_upper.?, other_upper.?)
+                    @min(iter_upper.?, other_upper.?)
                 else if (iter_upper == null)
                     other_upper
                 else
@@ -36,8 +36,7 @@ pub fn Zip(comptime Wrapped: type, comptime Other: type) type {
         }
 
         pub fn advanceBy(self: *Self, n: usize) usize {
-            return math_extra.max(
-                usize,
+            return @max(
                 self.iter.advanceBy(n),
                 self.other.advanceBy(n),
             );
