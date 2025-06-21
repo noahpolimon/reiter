@@ -466,7 +466,10 @@ pub fn Iter(comptime Wrapped: type) type {
 ///
 /// Use this with `@import("reiter").checkIterConstraints` if you need code completion with a constrained I.Wrapped`
 pub fn AsIter(comptime I: type) type {
-    comptime try meta_extra.expectImplIter(I);
-    if (!@hasField(I, "wrapped")) @compileError("");
-    return Iter(@FieldType(I, "wrapped"));
+    if (!@hasField(I, "wrapped"))
+        @compileError("type " ++ @typeName(I) ++ " does not contain field `wrapped`");
+    const Self = Iter(@FieldType(I, "wrapped"));
+    if (comptime I != Self)
+        @compileError("type " ++ @typeName(I) ++ " is not Iter(...)");
+    return Self;
 }
