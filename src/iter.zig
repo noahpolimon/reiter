@@ -296,9 +296,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 Iter(Take(Wrapped));
 
         /// Creates an iterator that yields only its first `n` elements.
-        ///
-        /// Successive calls on the same iterator, i.e `.take(n).take(n1)...take(nN)`, will not wrap itself.
-        /// The least value of `n` will be considered.
         pub fn take(self: Self, n: usize) CanonicalTake {
             return .{
                 .wrapped = switch (CanonicalTake) {
@@ -356,9 +353,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 Iter(Peekable(Wrapped));
 
         /// Creates an iterator that provides the `.peek()` method. See `Iter.peek`
-        ///
-        /// Successive calls on the same iterator, i.e `.peekable().peekable()...peekable()`, will not wrap itself.
-        /// Calls after the first one will return the same object.
         pub fn peekable(self: Self) CanonicalPeekable {
             return switch (CanonicalPeekable) {
                 Self => self,
@@ -375,9 +369,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 Iter(Cycle(Wrapped));
 
         /// Creates an iterator that resets instead of yielding `null` when it is consumed.
-        ///
-        /// Successive calls on the same iterator, i.e `.cycle().cycle()...cycle()`, will not wrap itself.
-        /// Calls after the first one will return the same object.
         pub fn cycle(self: Self) CanonicalCycle {
             return switch (CanonicalCycle) {
                 Self => self,
@@ -397,9 +388,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 Iter(Skip(Wrapped));
 
         /// Creates an iterator that skips `n` elements before starting to yield.
-        ///
-        /// Successive calls on the same iterator, i.e `.skip(n).skip(n)...skip(nN)`, will not wrap itself.
-        /// The sum of `n`'s will be considered.
         pub fn skip(self: Self, n: usize) CanonicalSkip {
             return .{
                 .wrapped = switch (CanonicalSkip) {
@@ -432,9 +420,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 Iter(SkipEvery(Wrapped));
 
         /// Creates an iterator that skips `n` elements before yielding each element.
-        ///
-        /// Successive calls on the same iterator, i.e `.skipEvery(interval).skipEvery(interval1)...skipEvery(intervalN)`, will not wrap itself.
-        /// The sum of `interval`s will be considered.
         pub fn skipEvery(self: Self, interval: usize) CanonicalSkipEvery {
             return .{
                 .wrapped = switch (CanonicalSkipEvery) {
@@ -458,9 +443,6 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Creates an iterator that skips `n - 1` elements after yielding each element.
         ///
-        /// Successive calls on the same iterator, i.e `.stepBy(n).stepBy(n1)...stepBy(nN)`, will not wrap itself.
-        /// The sum of (`n - 1`)'s will be considered.
-        ///
         /// Panics if `n` is zero.
         pub fn stepBy(self: Self, n: usize) CanonicalStepBy {
             if (n == 0) @panic("n must not be equal to 0");
@@ -482,9 +464,7 @@ pub fn Iter(comptime Wrapped: type) type {
 
 /// Checks if `I` comforms to `Iter(I.Wrapped)` and return as such.
 ///
-/// This does not have any runtime effect.
-///
-/// Use this if you need code completion with an unknown `I.Wrapped`
+/// Use this with `@import("reiter").checkIterConstraints` if you need code completion with a constrained I.Wrapped`
 pub fn AsIter(comptime I: type) type {
     comptime try meta_extra.expectImplIter(I);
     if (!@hasField(I, "wrapped")) @compileError("");
