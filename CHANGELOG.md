@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overflow error handling in `Chain`
 - Fix doc-comments in `Iter`
 - `AsIter` type checking
+- Error names in `expectImplIter()`
 
 ## [0.5.0] - 2025-06-02
 
