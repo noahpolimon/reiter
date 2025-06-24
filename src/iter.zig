@@ -1,5 +1,6 @@
 const std = @import("std");
 const meta = std.meta;
+const Allocator = std.mem.Allocator;
 
 const Enumerate = @import("adapters/enumerate.zig").Enumerate;
 const Map = @import("adapters/map.zig").Map;
@@ -224,23 +225,66 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         // experimental
-        fn collect(self: *Self, allocator: std.mem.Allocator) ![]Item {
-            const size_hint = self.sizeHint();
+        fn collectBuf(self: *Self, buf: []Item) error{BufferTooSmall}!void {
+            const iter = self.enumerate();
+
+            while (iter.next()) |e| {
+                const i = e.@"0";
+
+                if (i >= buf.len) {
+                    return error.BufferTooSmall;
+                }
+                buf[i] = e.@"1";
+            }
+        }
+
+        // experimental
+        // caller owns slice
+        fn collectAlloc(
+            self: *Self,
+            allocator: Allocator,
+            stop_append_at: usize,
+        ) Allocator.Error![]Item {
+            const lower_cap, const upper_cap = self.sizeHint();
             const cap =
-                if (size_hint.@"1") |upper|
+                if (upper_cap) |upper|
                     upper
-                else if (size_hint.@"0" < std.math.maxInt(usize))
-                    size_hint.@"0"
                 else
-                    0;
+                    @min(lower_cap, 4096);
 
             var list = try std.ArrayList(Item)
                 .initCapacity(allocator, cap);
 
+            self.collectArrayList(&list, stop_append_at);
+            return list.toOwnedSlice();
+        }
+
+        // experimental
+        fn collectArrayList(
+            self: *Self,
+            list: *std.ArrayList(Item),
+            stop_append_at: usize,
+        ) Allocator.Error!void {
+            return self.collectArrayListAligned(
+                null,
+                list,
+                stop_append_at,
+            );
+        }
+
+        // experimental
+        fn collectArrayListAligned(
+            self: *Self,
+            comptime alignment: ?u29,
+            list: *std.ArrayListAligned(Item, alignment),
+            stop_append_at: usize,
+        ) Allocator.Error!void {
             while (self.next()) |item| {
+                if (list.items.len >= stop_append_at) {
+                    break;
+                }
                 try list.append(item);
             }
-            return list.items;
         }
 
         /// Creates an iterator that yields enumerated values in the form of `struct { usize, Item }` tuples.
