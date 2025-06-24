@@ -40,5 +40,9 @@ pub fn Take(comptime Wrapped: type) type {
             self.n -= n;
             return self.iter.advanceBy(n);
         }
+
+        pub fn count(self: *Self) usize {
+            return self.n - self.iter.advanceBy(self.n);
+        }
     };
 }

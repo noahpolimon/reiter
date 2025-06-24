@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AsIter` type checking
 - Error names in `expectImplIter()`
 - Improved consistency in code construct representation in `CHANGELOG.md`
+- `Repeat.count()` now loops forever
+- Override `Map.advanceBy()`, `Skip.count()`, `Take.count()`
 
 ## [0.5.0] - 2025-06-02
 

@@ -38,5 +38,13 @@ pub fn Skip(comptime Wrapped: type) type {
             self.n = 0;
             return ret;
         }
+
+        pub fn count(self: *Self) usize {
+            return math_extra.saturatingSub(
+                usize,
+                self.iter.count(),
+                self.n,
+            );
+        }
     };
 }

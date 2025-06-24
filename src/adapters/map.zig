@@ -16,6 +16,10 @@ pub fn Map(comptime Wrapped: type, comptime R: type) type {
             return self.f(item);
         }
 
+        pub fn advanceBy(self: *Self, n: usize) usize {
+            return self.iter.advanceBy(n);
+        }
+
         pub fn sizeHint(self: Self) struct { usize, ?usize } {
             return self.iter.sizeHint();
         }

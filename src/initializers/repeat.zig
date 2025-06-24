@@ -27,7 +27,7 @@ fn Repeat(comptime T: type) type {
         }
 
         pub fn count(_: *Self) usize {
-            return math.maxInt(usize);
+            while (true) {}
         }
     };
 }

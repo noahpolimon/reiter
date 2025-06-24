@@ -524,7 +524,7 @@ test "Iter.peekable" {
     }
 
     {
-                var x = my_iterator.iter().peekable();
+        var x = my_iterator.iter().peekable();
 
         try expectEqual('w', x.next());
         try expectEqual('x', x.next());
@@ -707,7 +707,6 @@ test "reiter.repeat" {
     }
 
     try expectEqual(0, x.advanceBy(1));
-    try expectEqual(math.maxInt(usize), x.count());
     try expectEqual(0, x.advanceBy(1));
 }
 
