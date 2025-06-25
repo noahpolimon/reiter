@@ -17,7 +17,7 @@ const Skip = @import("adapters/skip.zig").Skip;
 const SkipWhile = @import("adapters/skip_while.zig").SkipWhile;
 const SkipEvery = @import("adapters/skip_every.zig").SkipEvery;
 const StepBy = @import("adapters/step_by.zig").StepBy;
-
+const Scan = @import("adapters/scan.zig").Scan;
 const meta_extra = @import("meta_extra.zig");
 
 /// Generic iterator that provides various methods in addition to methods `Wrapped` should provide.
@@ -502,6 +502,20 @@ pub fn Iter(comptime Wrapped: type) type {
                     },
                 },
             };
+        }
+
+        pub fn scan(
+            self: Self,
+            comptime State: type,
+            comptime R: type,
+            state: State,
+            f: *const fn (*State, Item) ?R,
+        ) Iter(Scan(Wrapped, State, R)) {
+            return .{ .wrapped = .{
+                .iter = self,
+                .state = state,
+                .f = f,
+            } };
         }
     };
 }

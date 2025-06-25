@@ -612,6 +612,25 @@ test "Iter.skipEvery" {
     try expectEqual(1, x.advanceBy(1));
 }
 
+test "Iter.scan" {
+    const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter().scan(u8, i16, 1, struct {
+        fn func(st: *u8, item: u8) ?i16 {
+            st.*, const v = @addWithOverflow(st.*, item);
+
+            if (v == 1) {
+                return null;
+            }
+            return -@as(i16, st.*);
+        }
+    }.func);
+
+    try expectEqual(-120, x.next());
+    try expectEqual(-240, x.next());
+    try expectEqual(null, x.next());
+}
+
 test "Iter.stepBy" {
     const my_iterator = MyIterator{};
 
