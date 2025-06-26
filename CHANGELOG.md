@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `assertIsIter()` now returns an error union
 - Use `Marker` for all adapters
 - Rename `assertIsIter()` to `expectImplIter()`
-- Bump minimum_zig_version to 0.14.1
+- Bump `.minimum_zig_version` to 0.14.1
+- Use `anytype` for `Iter.fold()`, `Iter.fallibleFold()` and `Iter.scan()`
 
 ### Removed
 

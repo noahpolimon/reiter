@@ -10,8 +10,8 @@ pub fn Scan(
         pub const Item = R;
 
         iter: Iter(Wrapped),
-        f: *const fn (*State, Wrapped.Item) ?Item,
         state: State,
+        f: *const fn (*State, Wrapped.Item) ?Item,
 
         pub fn next(self: *Self) ?Item {
             return self.f(

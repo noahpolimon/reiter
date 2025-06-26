@@ -111,7 +111,7 @@ pub fn Iter(comptime Wrapped: type) type {
             if (meta.hasMethod(Wrapped, "count"))
                 return self.wrapped.count();
 
-            return self.fold(usize, 0, struct {
+            return self.fold(0, struct {
                 fn call(acc: usize, _: Item) usize {
                     return acc + 1;
                 }
@@ -169,7 +169,11 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         /// Consumes the iterator and folds it into a single value by accumulating a value computed by `f`.
-        pub fn fold(self: *Self, comptime R: type, acc: R, f: *const fn (R, Item) R) R {
+        pub fn fold(
+            self: *Self,
+            acc: anytype,
+            f: *const fn (@TypeOf(acc), Item) @TypeOf(acc),
+        ) @TypeOf(acc) {
             var x = acc;
             while (self.next()) |item|
                 x = f(x, item);
@@ -177,7 +181,11 @@ pub fn Iter(comptime Wrapped: type) type {
         }
 
         /// Fallible version of `.fold()`. Both `f` and the method returns `anyerror!R`
-        pub fn fallibleFold(self: *Self, comptime R: type, acc: R, f: *const fn (R, Item) anyerror!R) !R {
+        pub fn fallibleFold(
+            self: *Self,
+            acc: anytype,
+            f: *const fn (@TypeOf(acc), Item) anyerror!@TypeOf(acc),
+        ) !@TypeOf(acc) {
             var x = acc;
             while (self.next()) |item| {
                 x = try f(x, item);
@@ -506,11 +514,10 @@ pub fn Iter(comptime Wrapped: type) type {
 
         pub fn scan(
             self: Self,
-            comptime State: type,
             comptime R: type,
-            state: State,
-            f: *const fn (*State, Item) ?R,
-        ) Iter(Scan(Wrapped, State, R)) {
+            state: anytype,
+            f: *const fn (*@TypeOf(state), Item) ?R,
+        ) Iter(Scan(Wrapped, @TypeOf(state), R)) {
             return .{ .wrapped = .{
                 .iter = self,
                 .state = state,
