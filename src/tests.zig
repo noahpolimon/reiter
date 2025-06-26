@@ -177,7 +177,7 @@ test "Iter.fold" {
 
     var x = my_iterator.iter();
 
-    const folded = x.fold(u32, 0, struct {
+    const folded = x.fold(@as(u32, 0), struct {
         fn call(acc: u32, item: u8) u32 {
             return acc + item;
         }
@@ -461,7 +461,10 @@ test "Iter.peekable" {
     {
         var x = my_iterator.iter().peekable().peekable();
 
-        try expectEqual(Iter(@import("adapters/peekable.zig").Peekable(MyIterator)), @TypeOf(x));
+        try expectEqual(
+            Iter(@import("adapters/peekable.zig").Peekable(MyIterator)),
+            @TypeOf(x),
+        );
 
         try expectEqual(
             .{ my_iterator.buffer.len, my_iterator.buffer.len },
@@ -615,7 +618,7 @@ test "Iter.skipEvery" {
 test "Iter.scan" {
     const my_iterator = MyIterator{};
 
-    var x = my_iterator.iter().scan(u8, i16, 1, struct {
+    var x = my_iterator.iter().scan(i16, @as(u8, 1), struct {
         fn func(st: *u8, item: u8) ?i16 {
             st.*, const v = @addWithOverflow(st.*, item);
 
@@ -865,7 +868,7 @@ test "all" {
             }
         }.call);
 
-        const folded = x.fold(usize, 0, struct {
+        const folded = x.fold(@as(usize, 0), struct {
             fn call(acc: usize, j: u32) usize {
                 return acc + j;
             }
