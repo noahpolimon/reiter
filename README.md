@@ -237,7 +237,7 @@ Initializers are pre-made functions that can be used to create iterators for a p
     ```
 
 `fromRangeStep(type, start, end, step)`
-- Similar to `fromRange()`. However, the step can be modified. Negative step is possible as long as start > end, which is not possible with `.stepBy()`. 
+- Similar to `fromRange()`. However, the step can be modified. Negative step is possible as long as start > end, which is not possible with `Iter.stepBy()`. 
 
     ```zig
     var i = reiter.fromRangeStep(u32, 0, 5, 2);
@@ -270,9 +270,6 @@ Initializers are pre-made functions that can be used to create iterators for a p
 ## Project Particulars
 
 * Avoid using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
-* Avoid using `anytype` wherever possible unless: 
-  1. The type would be long to type or not easy to find out if used as function parameter, e.g, `Iter(Enumerate(Take(FilterMap(Chain(Once(...), ...)))))`
-  2. The type could really be of any type, e.g, struct fields.
 * Does not redundantly include "zig" in the name. (see [zig -o- 236fb91](http://github.com/ziglang/zig/commit/236fb915cc1c3b59b47e609125b680743c9c1ec0))
 * Will likely bump minimum zig version until a stable zig version is released (1.0)
   
