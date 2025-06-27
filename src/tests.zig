@@ -648,6 +648,26 @@ test "Iter.stepBy" {
     try expectEqual(2, x.advanceBy(2));
 }
 
+test "Iter.fuse" {
+    const my_iterator = MyIterator{};
+
+    var x = my_iterator.iter()
+        .mapWhile(u8, struct {
+            fn func(item: u8) ?u8 {
+                if (item == 'y') {
+                    return null;
+                }
+                return item;
+            }
+        }.func)
+        .fuse();
+
+    try expectEqual('w', x.next());
+    try expectEqual(null, x.next());
+    try expectEqual(null, x.next());
+    try expectEqual(null, x.next());
+}
+
 //
 // tests for initializers
 //

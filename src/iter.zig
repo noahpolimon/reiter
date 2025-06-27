@@ -18,6 +18,8 @@ const SkipWhile = @import("adapters/skip_while.zig").SkipWhile;
 const SkipEvery = @import("adapters/skip_every.zig").SkipEvery;
 const StepBy = @import("adapters/step_by.zig").StepBy;
 const Scan = @import("adapters/scan.zig").Scan;
+const Fuse = @import("adapters/fuse.zig").Fuse;
+
 const meta_extra = @import("meta_extra.zig");
 
 /// Generic iterator that provides various methods in addition to methods `Wrapped` should provide.
@@ -522,6 +524,12 @@ pub fn Iter(comptime Wrapped: type) type {
                 .iter = self,
                 .state = state,
                 .f = f,
+            } };
+        }
+
+        pub fn fuse(self: Self) Iter(Fuse(Wrapped)) {
+            return .{ .wrapped = .{
+                .iter = self,
             } };
         }
     };
