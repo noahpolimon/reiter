@@ -132,24 +132,24 @@ pub fn Iter(comptime Wrapped: type) type {
             return true;
         }
 
-        /// Consumes the iterator to obtain the minimum value from the iterator. Type of `Item` should be comparable.
+        /// Consumes the iterator to obtain the minimum value from the iterator.
+        ///
+        /// Internally uses `@min()`. If you need custom logic, use `Iter.reduce()` or `Iter.fold()`
         pub fn min(self: *Self) ?Item {
             var m = self.next() orelse return null;
             while (self.next()) |item| {
-                if (item < m) {
-                    m = item;
-                }
+                m = @min(m, item);
             }
             return m;
         }
 
-        /// Consumes the iterator to obtain the maximum value from the iterator. Type of `Item` should be comparable.
+        /// Consumes the iterator to obtain the maximum value from the iterator.
+        ///
+        /// Internally uses `@max()`. If you need custom logic, use `Iter.reduce()` or `Iter.fold()`
         pub fn max(self: *Self) ?Item {
             var m = self.next() orelse return null;
             while (self.next()) |item| {
-                if (item > m) {
-                    m = item;
-                }
+                m = @max(m, item);
             }
             return m;
         }

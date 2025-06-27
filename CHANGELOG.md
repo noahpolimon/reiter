@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved consistency in code construct representation in `CHANGELOG.md`
 - `Repeat.count()` now loops forever
 - Override `Map.advanceBy()`, `Skip.count()`, `Take.count()`
+- `Iter.min()` and `Iter.max()` now uses `@min()` and `@max()` internally
 
 ## [0.5.0] - 2025-06-02
 
