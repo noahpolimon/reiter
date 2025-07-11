@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Export `checkIterConstraints()`
-- Provide `AsIter` type
 - Impl `Iter.collectAlloc()`, `Iter.collectBuf()`, `Iter.collectArrayList()` and `Iter.collectArrayListAligned()`
 - Impl `Iter.scan()`
 - Impl `Iter.fuse()`
@@ -42,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Overflow error handling in `Chain`
 - Fix doc-comments in `Iter`
-- `AsIter` type checking
 - Error names in `expectImplIter()`
 - Improved consistency in code construct representation in `CHANGELOG.md`
 - `Repeat.count()` now loops forever

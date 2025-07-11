@@ -534,15 +534,3 @@ pub fn Iter(comptime Wrapped: type) type {
         }
     };
 }
-
-/// Checks if `I` comforms to `Iter(I.Wrapped)` and return as such.
-///
-/// Use this with `@import("reiter").checkIterConstraints` if you need code completion with a constrained I.Wrapped`
-pub fn AsIter(comptime I: type) type {
-    if (!@hasField(I, "wrapped"))
-        @compileError("type " ++ @typeName(I) ++ " does not contain field `wrapped`");
-    const Self = Iter(@FieldType(I, "wrapped"));
-    if (comptime I != Self)
-        @compileError("type " ++ @typeName(I) ++ " is not Iter(...)");
-    return Self;
-}
