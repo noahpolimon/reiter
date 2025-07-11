@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove incorrect overrides for `Cycle`
 - Remove `min()` and `max()` from `math_extra.zig` in favor of `@min()` and `@max()`
 - Remove `Iter.collect()`
+- Remove `/docs`
 
 ### Fixed
 

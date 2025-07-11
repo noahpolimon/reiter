@@ -148,11 +148,11 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-`once(type, item)`
+`once(item)`
 - Creates an iterator that yields `item` only once.
 
     ```zig
-    var i = reiter.once(u32, 50);
+    var i = reiter.once(@as(u32, 50));
 
     _ = i.next(); // 50
     _ = i.next(); // null
@@ -172,23 +172,23 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-`repeat(type, item)`
-- Creates an iterator that yields `item` repeatedly. This is the equivalent of using `once(type, item).cycle()`.
+`repeat(item)`
+- Creates an iterator that yields `item` repeatedly. This is the equivalent of using `once(item).cycle()`.
 
     ```zig
-    var i = reiter.repeat(u32, 50);
+    var i = reiter.repeat(@as(u32, 50));
     
     for (0..1_000_000) |_| {
         _ = i.next(); // always returns 50
     }
     ```
 
-`repeatN(type, item, n)`
-- Creates an iterator that yields `item` `n` times. This is the equivalent of using `once(type, item).cycle().take(n)`.
+`repeatN(item, n)`
+- Creates an iterator that yields `item` `n` times. This is the equivalent of using `once(item).cycle().take(n)`.
 
     ```zig
     const n: usize = 3;
-    var i = reiter.repeatN(u32, 50, n);
+    var i = reiter.repeatN(@as(u32, 50), n);
     
     for (0..n) |_| {
         _ = i.next(); // 50
@@ -225,22 +225,22 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-`fromRange(type, start, end)`
+`fromRange(start, end)`
 - Creates an iterator from an integer range. The end value is exclusive.
 
     ```zig
-    var i = reiter.fromRange(u32, 0, 2);
+    var i = reiter.fromRange(@as(u32, 0), 2);
     
     _ = i.next(); // 0
     _ = i.next(); // 1
     _ = i.next(); // null
     ```
 
-`fromRangeStep(type, start, end, step)`
+`fromRangeStep(start, end, step)`
 - Similar to `fromRange()`. However, the step can be modified. Negative step is possible as long as start > end, which is not possible with `Iter.stepBy()`. 
 
     ```zig
-    var i = reiter.fromRangeStep(u32, 0, 5, 2);
+    var i = reiter.fromRangeStep(@as(u32, 0), 5, 2);
     
     _ = i.next(); // 0
     _ = i.next(); // 2
@@ -248,11 +248,11 @@ Initializers are pre-made functions that can be used to create iterators for a p
     _ = i.next(); // null
     ```
 
-`recurse(type, init, func)`
+`recurse(init, func)`
 - Computes the value of the next iteration from the last yielded value. `init` is yielded first then the next value is computed from it.
 
     ```zig
-    var i = reiter.recurse(u32, 0, struct {
+    var i = reiter.recurse(@as(u32, 0), struct {
         fn call(x: u32) ?u32 {
             if (x >= 5) return null;
             return x + 1;
@@ -271,7 +271,6 @@ Initializers are pre-made functions that can be used to create iterators for a p
 
 * Avoid using features of Zig that have an uncertain future, e.g, `usingnamespace` (see [zig#20663](https://github.com/ziglang/zig/issues/20663))
 * Does not redundantly include "zig" in the name. (see [zig -o- 236fb91](http://github.com/ziglang/zig/commit/236fb915cc1c3b59b47e609125b680743c9c1ec0))
-* Will likely bump minimum zig version until a stable zig version is released (1.0)
   
 ## License
 
