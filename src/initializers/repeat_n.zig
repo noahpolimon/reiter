@@ -42,7 +42,7 @@ fn RepeatN(comptime T: type) type {
 /// Creates an iterator that yields `item` `n` times.
 ///
 /// Equivalent of using `reiter.once(T, item).cycle().take(n)`.
-pub fn repeatN(comptime T: type, item: T, n: usize) Iter(RepeatN(T)) {
+pub fn repeatN(item: anytype, n: usize) Iter(RepeatN(@TypeOf(item))) {
     return .{
         .wrapped = .{ .item = item, .n = n },
     };

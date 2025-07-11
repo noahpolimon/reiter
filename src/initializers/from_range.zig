@@ -54,14 +54,21 @@ fn FromRange(comptime T: type) type {
 /// Creates an iterator from an integer range with an inclusive `start` and exclusive `end`.
 ///
 /// Panics if the range is not finite.
-pub fn fromRange(comptime T: type, start: T, end: T) Iter(FromRange(T)) {
-    return fromRangeStep(T, start, end, 1);
+pub fn fromRange(
+    start: anytype,
+    end: anytype,
+) Iter(FromRange(@TypeOf(start, end))) {
+    return fromRangeStep(start, end, 1);
 }
 
 /// Creates an iterator from an integer range with an inclusive `start`, exclusive `end` and non-zero `step`.
 ///
 /// Panics if `step` is zero.
-pub fn fromRangeStep(comptime T: type, start: T, end: T, step: T) Iter(FromRange(T)) {
+pub fn fromRangeStep(
+    start: anytype,
+    end: anytype,
+    step: anytype,
+) Iter(FromRange(@TypeOf(start, end, step))) {
     if (step == 0)
         @panic("step must not be equal to 0");
 

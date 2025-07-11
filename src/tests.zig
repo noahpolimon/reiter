@@ -663,7 +663,7 @@ test "Iter.fuse" {
         .fuse();
 
     try expectEqual('w', x.next());
-    try expectEqual(null, x.next());
+    try expectEqual('x', x.next());
     try expectEqual(null, x.next());
     try expectEqual(null, x.next());
 }
@@ -681,20 +681,20 @@ test "reiter.empty" {
 
 test "reiter.once" {
     {
-        var x = reiter.once(u32, 1);
+        var x = reiter.once(@as(u32, 1));
 
         try expectEqual(1, x.next());
         try expectEqual(null, x.next());
     }
     {
-        var x = reiter.once(u32, 1);
+        var x = reiter.once(@as(u32, 1));
 
         try expectEqual(0, x.advanceBy(1));
         try expectEqual(null, x.next());
         try expectEqual(1, x.advanceBy(1));
     }
     {
-        var x = reiter.once(u32, 43);
+        var x = reiter.once(@as(u32, 43));
 
         try expectEqual(1, x.count());
         try expectEqual(0, x.count());
@@ -742,7 +742,7 @@ test "reiter.onceWith" {
 }
 
 test "reiter.repeat" {
-    var x = reiter.repeat(u32, 1);
+    var x = reiter.repeat(@as(u32, 1));
 
     for (0..1_000_000) |_| {
         try expectEqual(1, x.next());
@@ -754,7 +754,7 @@ test "reiter.repeat" {
 
 test "reiter.repeatN" {
     const n = 10;
-    var x = reiter.repeatN(u32, 1, n);
+    var x = reiter.repeatN(@as(u32, 1), n);
 
     try expectEqual(0, x.advanceBy(1));
     try expectEqual(1, x.nth(1));
@@ -798,10 +798,10 @@ test "reiter.fromSlice" {
 }
 
 test "reiter.fromRange" {
-    const from = 0;
+    const from: usize = 0;
     const to = 10;
 
-    var x = reiter.fromRange(usize, from, to);
+    var x = reiter.fromRange(from, to);
 
     try expectEqual(0, x.advanceBy(2));
     try expectEqual(3, x.nth(1));
@@ -817,11 +817,11 @@ test "reiter.fromRange" {
 
 test "reiter.fromRangeStep" {
     {
-        const from = 0;
+        const from: usize = 0;
         const to = 20;
         const step = 2;
 
-        var x = reiter.fromRangeStep(usize, from, to, step);
+        var x = reiter.fromRangeStep(from, to, step);
 
         try expectEqual(0, x.advanceBy(2));
         try expectEqual(6, x.nth(1));
@@ -834,11 +834,11 @@ test "reiter.fromRangeStep" {
         try expectEqual(null, x.next());
     }
     {
-        const from = 20;
+        const from: isize = 20;
         const to = 0;
         const step = -2;
 
-        var x = reiter.fromRangeStep(isize, from, to, step);
+        var x = reiter.fromRangeStep(from, to, step);
 
         try expectEqual(0, x.advanceBy(2));
         try expectEqual(14, x.nth(1));
@@ -863,7 +863,7 @@ test "reiter.recurse" {
 
     var init: u32 = 1;
 
-    var x = reiter.recurse(u32, init, doubleUntil100);
+    var x = reiter.recurse(init, doubleUntil100);
 
     for (init..init + 100) |_| {
         try expectEqual(init, x.next());

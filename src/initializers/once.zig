@@ -31,7 +31,7 @@ fn Once(comptime T: type) type {
     };
 }
 /// Creates an iterator that yields `item` only once.
-pub fn once(comptime T: type, item: T) Iter(Once(T)) {
+pub fn once(item: anytype) Iter(Once(@TypeOf(item))) {
     return .{
         .wrapped = .{ .item = item },
     };

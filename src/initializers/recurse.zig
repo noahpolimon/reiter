@@ -28,11 +28,14 @@ fn Recurse(comptime T: type) type {
 
 /// Computes the value of the next iteration from the last yielded value.
 ///
-/// `init` is yielded first then the next value is computed from it.
-pub fn recurse(comptime T: type, init: T, f: *const fn (T) ?T) Iter(Recurse(T)) {
+/// `initial` is yielded first then the next value is computed from it.
+pub fn recurse(
+    initial: anytype,
+    f: *const fn (@TypeOf(initial)) ?@TypeOf(initial),
+) Iter(Recurse(@TypeOf(initial))) {
     return .{
         .wrapped = .{
-            .value = init,
+            .value = initial,
             .f = f,
         },
     };

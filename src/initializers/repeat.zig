@@ -35,7 +35,7 @@ fn Repeat(comptime T: type) type {
 /// Creates an iterator that yields `item` repeatedly.
 ///
 /// Equivalent of using `reiter.once(T, item).cycle()`.
-pub fn repeat(comptime T: type, item: T) Iter(Repeat(T)) {
+pub fn repeat(item: anytype) Iter(Repeat(@TypeOf(item))) {
     return .{
         .wrapped = .{ .item = item },
     };
