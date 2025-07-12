@@ -1,5 +1,6 @@
 const std = @import("std");
 const meta = std.meta;
+
 const Iter = @import("iter.zig").Iter;
 
 pub fn Marker(comptime name: []const u8) type {
@@ -21,7 +22,7 @@ pub inline fn expectIterSpecs(
     comptime Item: type,
 ) !void {
     const Wrapped = @FieldType(I, "wrapped");
-        comptime {
+    comptime {
         if (I != Iter(Wrapped)) return error.NotAnIter;
         if (Wrapped.Item != Item) return error.IncompatibleItemDecl;
         if (!isMarked(Wrapped, mark)) return error.IncorrectIterWrapper;

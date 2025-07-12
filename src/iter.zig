@@ -2,23 +2,22 @@ const std = @import("std");
 const meta = std.meta;
 const Allocator = std.mem.Allocator;
 
+const Chain = @import("adapters/chain.zig").Chain;
+const Cycle = @import("adapters/cycle.zig").Cycle;
 const Enumerate = @import("adapters/enumerate.zig").Enumerate;
-const Map = @import("adapters/map.zig").Map;
-const MapWhile = @import("adapters/map_while.zig").MapWhile;
 const Filter = @import("adapters/filter.zig").Filter;
 const FilterMap = @import("adapters/filter_map.zig").FilterMap;
-const Take = @import("adapters/take.zig").Take;
-const TakeWhile = @import("adapters/take_while.zig").TakeWhile;
-const Chain = @import("adapters/chain.zig").Chain;
-const Zip = @import("adapters/zip.zig").Zip;
+const Fuse = @import("adapters/fuse.zig").Fuse;
+const Map = @import("adapters/map.zig").Map;
+const MapWhile = @import("adapters/map_while.zig").MapWhile;
 const Peekable = @import("adapters/peekable.zig").Peekable;
-const Cycle = @import("adapters/cycle.zig").Cycle;
+const Scan = @import("adapters/scan.zig").Scan;
 const Skip = @import("adapters/skip.zig").Skip;
 const SkipWhile = @import("adapters/skip_while.zig").SkipWhile;
 const StepBy = @import("adapters/step_by.zig").StepBy;
-const Scan = @import("adapters/scan.zig").Scan;
-const Fuse = @import("adapters/fuse.zig").Fuse;
-
+const Take = @import("adapters/take.zig").Take;
+const TakeWhile = @import("adapters/take_while.zig").TakeWhile;
+const Zip = @import("adapters/zip.zig").Zip;
 const meta_extra = @import("meta_extra.zig");
 
 /// Generic iterator that provides various methods in addition to methods `Wrapped` should provide.
@@ -31,8 +30,6 @@ pub fn Iter(comptime Wrapped: type) type {
     return struct {
         const Self = @This();
 
-        /// __[ Required ]__
-        ///
         /// Type yielded by iterator.
         pub const Item = Wrapped.Item;
 
@@ -41,15 +38,11 @@ pub fn Iter(comptime Wrapped: type) type {
         /// Not intended to be accessed directly.
         wrapped: Wrapped,
 
-        /// __[ Required ]__
-        ///
         /// Yields the next value from the iterator.
         pub fn next(self: *Self) ?Item {
             return self.wrapped.next();
         }
 
-        /// __[ Experimental ] [ Overridable ]__
-        ///
         /// Returns a tuple containing the least and highest value of the length of the iterator.
         ///
         /// A least value `std.math.maxInt(usize)` or/and a highest value `null` represent an unknown or infinite length.
@@ -77,8 +70,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 @compileError(@typeName(Wrapped) ++ " is not peekable");
         }
 
-        /// __[ Experimental ] [ Overridable ]__
-        ///
         /// Advances the iterator by `n`. If the iterator is consumed before `n`
         /// is consumed, the amount that was not processed is returned.
         ///
@@ -93,8 +84,6 @@ pub fn Iter(comptime Wrapped: type) type {
             return 0;
         }
 
-        /// __[ Overridable ]__
-        ///
         /// Advances the iterator by `n`, then returns the next value.
         pub fn nth(self: *Self, n: usize) ?Item {
             if (meta.hasMethod(Wrapped, "nth"))
@@ -105,8 +94,6 @@ pub fn Iter(comptime Wrapped: type) type {
             return self.next();
         }
 
-        /// __[ Overridable ]__
-        ///
         /// Consumes the iterator to count its number of elements.
         pub fn count(self: *Self) usize {
             if (meta.hasMethod(Wrapped, "count"))
@@ -205,8 +192,6 @@ pub fn Iter(comptime Wrapped: type) type {
             return acc;
         }
 
-        /// [ Experimental ]
-        ///
         /// Fallible version of `.reduce()`. `f` returns `anyerror!Item` while the method returns `!?Item`.
         pub fn fallibleReduce(self: *Self, f: *const fn (Item, Item) anyerror!Item) !?Item {
             var acc = self.next() orelse return null;
@@ -233,8 +218,8 @@ pub fn Iter(comptime Wrapped: type) type {
             return null;
         }
 
-        // experimental
-        fn collectBuf(self: *Self, buf: []Item) error{BufferTooSmall}!void {
+        /// experimental
+        pub fn collectBuf(self: *Self, buf: []Item) error{BufferTooSmall}!void {
             const iter = self.enumerate();
 
             while (iter.next()) |e| {
@@ -247,9 +232,9 @@ pub fn Iter(comptime Wrapped: type) type {
             }
         }
 
-        // experimental
-        // caller owns slice
-        fn collectAlloc(
+        /// experimental
+        /// caller owns slice
+        pub fn collectAlloc(
             self: *Self,
             allocator: Allocator,
             stop_append_at: usize,
@@ -268,8 +253,8 @@ pub fn Iter(comptime Wrapped: type) type {
             return list.toOwnedSlice();
         }
 
-        // experimental
-        fn collectArrayList(
+        /// experimental
+        pub fn collectArrayList(
             self: *Self,
             list: *std.ArrayList(Item),
             stop_append_at: usize,
@@ -281,8 +266,8 @@ pub fn Iter(comptime Wrapped: type) type {
             );
         }
 
-        // experimental
-        fn collectArrayListAligned(
+        /// experimental
+        pub fn collectArrayListAligned(
             self: *Self,
             comptime alignment: ?u29,
             list: *std.ArrayListAligned(Item, alignment),

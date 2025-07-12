@@ -1,9 +1,8 @@
 const std = @import("std");
 
 const Iter = @import("../iter.zig").Iter;
-
-const Marker = @import("../meta_extra.zig").Marker;
 const math_extra = @import("../math_extra.zig");
+const Marker = @import("../meta_extra.zig").Marker;
 
 pub fn Chain(comptime Wrapped: type, comptime Other: type) type {
     if (comptime Wrapped.Item != Other.Item)
