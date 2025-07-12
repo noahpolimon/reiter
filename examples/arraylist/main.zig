@@ -1,11 +1,6 @@
 const std = @import("std");
 const Iter = @import("reiter").Iter;
 
-// There are probably better ways of doing this and I am working on finding them.
-//
-// I am not familiar with Zig enough and do not have a good understanding of low level
-// in general yet (tho i like it), so if any implementation of iterators for std
-// library types are made, consider submitting a pull request ;3
 fn ArrayListIter(comptime T: type) type {
     return struct {
         const Self = @This();
@@ -16,12 +11,11 @@ fn ArrayListIter(comptime T: type) type {
 
         pub fn from(list: *const std.ArrayList(T)) Iter(Self) {
             return .{
-                .impl = .{ .list = list },
-                .nextFn = next,
+                .wrapped = .{ .list = list },
             };
         }
 
-        pub fn next(self: *Self) ?u32 {
+        pub fn next(self: *Self) ?Item {
             if (self.curr >= self.list.items.len) {
                 return null;
             }
@@ -49,5 +43,5 @@ pub fn main() !void {
         }
     }.f);
 
-    std.debug.print("Reduced: {any\n}", .{y}); // 4
+    std.debug.print("Reduced: {any}\n", .{y}); // 4
 }
