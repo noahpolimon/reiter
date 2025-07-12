@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Pass `self` directly to `Cycle.wrapped.iter` in `Iter.cycle()`
+- Pass `self` directly to `Iter.wrapped.iter` in `Iter.cycle()`
 - Struct marking now uses a generic type `Marker`
 - Allow infinite range in `fromRangeStep`
 - Panic instead of asserting where applicable
