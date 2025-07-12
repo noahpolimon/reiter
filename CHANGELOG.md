@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Repeat.count()` now loops forever
 - Override `Map.advanceBy()`, `Skip.count()`, `Take.count()`
 - `Iter.min()` and `Iter.max()` now uses `@min()` and `@max()` internally
+- Fix `Iter.count()` compile error when not overridden
 
 ## [0.5.0] - 2025-06-02
 

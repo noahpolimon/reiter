@@ -113,7 +113,7 @@ pub fn Iter(comptime Wrapped: type) type {
             if (meta.hasMethod(Wrapped, "count"))
                 return self.wrapped.count();
 
-            return self.fold(0, struct {
+            return self.fold(@as(usize, 0), struct {
                 fn call(acc: usize, _: Item) usize {
                     return acc + 1;
                 }
