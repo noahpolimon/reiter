@@ -3,6 +3,7 @@ const math = std.math;
 
 const Iter = @import("../iter.zig").Iter;
 const Marker = @import("../meta_extra.zig").Marker;
+const expectIterSpecs = @import("../meta_extra.zig").expectIterSpecs;
 
 pub fn Peekable(comptime Wrapped: type) type {
     return struct {
@@ -65,4 +66,11 @@ pub fn Peekable(comptime Wrapped: type) type {
             return self.iter.count() + @intFromBool(self.peeked != null);
         }
     };
+}
+
+pub fn AsPeekable(comptime I: type, comptime Item: type) type {
+    comptime expectIterSpecs(I, "Peekable", Item) catch |err|
+        @compileError("type " ++ @TypeOf(I) ++ "not Peekable: " ++ @errorName(err));
+
+    return Iter(@FieldType(I, "wrapped"));
 }

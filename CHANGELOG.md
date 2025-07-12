@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Impl `Iter.collectAlloc()`, `Iter.collectBuf()`, `Iter.collectArrayList()` and `Iter.collectArrayListAligned()`
 - Impl `Iter.scan()`
 - Impl `Iter.fuse()`
+- Provide `AsPeekable` type
 
 ### Changed
 

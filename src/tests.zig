@@ -915,3 +915,24 @@ test "all" {
         }.call);
     }
 }
+
+pub fn MyPeekableInput(comptime I: type) type {
+    return struct {
+        const Self = @This();
+
+        stream: *reiter.AsPeekable(I, u8),
+
+        pub fn peekChar(self: *Self) ?u8 {
+            return self.stream.peek();
+        }
+    };
+}
+
+test "reiter.AsPeekable" {
+    const my_iterator = MyIterator{};
+    var x = my_iterator.iter().peekable();
+
+    var my_input: MyPeekableInput(@TypeOf(x)) = .{ .stream = &x };
+
+    _ = my_input.peekChar();
+}
