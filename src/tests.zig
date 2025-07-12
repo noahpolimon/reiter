@@ -26,7 +26,7 @@ const MyIterator = struct {
         const s = self.buffer.len - self.curr;
         return .{ s, s };
     }
-    
+
     pub fn iter(self: Self) Iter(Self) {
         return .{ .wrapped = self };
     }
@@ -573,22 +573,6 @@ test "Iter.skipWhile" {
     try expectEqual(null, x.next());
 }
 
-test "Iter.skipEvery" {
-    const my_iterator = MyIterator{};
-
-    var x = my_iterator.iter().skipEvery(1).skipEvery(0);
-
-    try expectEqual(Iter(@import("adapters/skip_every.zig").SkipEvery(MyIterator)), @TypeOf(x));
-
-    try expect(x.sizeHint().@"0" >= my_iterator.buffer.len / 2);
-
-    try expectEqual(0, x.advanceBy(1));
-    try expectEqual('z', x.next());
-    try expectEqual(1, x.advanceBy(1));
-    try expectEqual(null, x.next());
-    try expectEqual(1, x.advanceBy(1));
-}
-
 test "Iter.scan" {
     const my_iterator = MyIterator{};
 
@@ -872,7 +856,8 @@ test "all" {
     }
     {
         const x = my_iterator.iter()
-            .skipEvery(1)
+            .skip(1)
+            .stepBy(2)
             .zip(my_iterator.iter())
             .map(u32, struct {
             fn call(i: struct { u8, u8 }) u32 {

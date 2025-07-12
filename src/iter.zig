@@ -15,7 +15,6 @@ const Peekable = @import("adapters/peekable.zig").Peekable;
 const Cycle = @import("adapters/cycle.zig").Cycle;
 const Skip = @import("adapters/skip.zig").Skip;
 const SkipWhile = @import("adapters/skip_while.zig").SkipWhile;
-const SkipEvery = @import("adapters/skip_every.zig").SkipEvery;
 const StepBy = @import("adapters/step_by.zig").StepBy;
 const Scan = @import("adapters/scan.zig").Scan;
 const Fuse = @import("adapters/fuse.zig").Fuse;
@@ -463,28 +462,6 @@ pub fn Iter(comptime Wrapped: type) type {
                 .wrapped = .{
                     .iter = self,
                     .predicate = predicate,
-                },
-            };
-        }
-
-        const CanonicalSkipEvery =
-            if (meta_extra.isMarked(Wrapped, "SkipEvery"))
-                Self
-            else
-                Iter(SkipEvery(Wrapped));
-
-        /// Creates an iterator that skips `n` elements before yielding each element.
-        pub fn skipEvery(self: Self, interval: usize) CanonicalSkipEvery {
-            return .{
-                .wrapped = switch (CanonicalSkipEvery) {
-                    Self => .{
-                        .iter = self.wrapped.iter,
-                        .interval = self.wrapped.interval + interval,
-                    },
-                    else => .{
-                        .iter = self,
-                        .interval = interval,
-                    },
                 },
             };
         }
