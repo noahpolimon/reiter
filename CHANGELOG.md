@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `.minimum_zig_version` to `0.14.1`
 - Use `anytype` for `Iter.fold()`, `Iter.fallibleFold()` and `Iter.scan()`
 - Use `anytype` for `fromRange()`, `once()`, `recurse()`, `repeatN()` and `repeat()`
+- Make `Iter.min` and `Iter.max` overridable
 
 ### Removed
 

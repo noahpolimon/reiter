@@ -122,8 +122,11 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Consumes the iterator to obtain the minimum value from the iterator.
         ///
-        /// Internally uses `@min()`. If you need custom logic, use `Iter.reduce()` or `Iter.fold()`
+        /// Default impl internally uses `@min()`.
         pub fn min(self: *Self) ?Item {
+            if (meta.hasMethod(Wrapped, "min"))
+                return self.wrapped.min();
+
             var m = self.next() orelse return null;
             while (self.next()) |item| {
                 m = @min(m, item);
@@ -133,8 +136,11 @@ pub fn Iter(comptime Wrapped: type) type {
 
         /// Consumes the iterator to obtain the maximum value from the iterator.
         ///
-        /// Internally uses `@max()`. If you need custom logic, use `Iter.reduce()` or `Iter.fold()`
+        /// Default impl internally uses `@max()`.
         pub fn max(self: *Self) ?Item {
+            if (meta.hasMethod(Wrapped, "max"))
+                return self.wrapped.max();
+
             var m = self.next() orelse return null;
             while (self.next()) |item| {
                 m = @max(m, item);
@@ -482,17 +488,21 @@ pub fn Iter(comptime Wrapped: type) type {
             state: anytype,
             f: *const fn (*@TypeOf(state), Item) ?R,
         ) Iter(Scan(Wrapped, @TypeOf(state), R)) {
-            return .{ .wrapped = .{
-                .iter = self,
-                .state = state,
-                .f = f,
-            } };
+            return .{
+                .wrapped = .{
+                    .iter = self,
+                    .state = state,
+                    .f = f,
+                },
+            };
         }
 
         pub fn fuse(self: Self) Iter(Fuse(Wrapped)) {
-            return .{ .wrapped = .{
-                .iter = self,
-            } };
+            return .{
+                .wrapped = .{
+                    .iter = self,
+                },
+            };
         }
     };
 }
